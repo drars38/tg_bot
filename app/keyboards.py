@@ -80,3 +80,9 @@ def create_admin_inline_keyboard(message_id):
 
 
 
+banned_user = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text = 'Узнать время до окончания бана')]
+    ],
+    resize_keyboard=True
+)

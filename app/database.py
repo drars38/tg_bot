@@ -150,3 +150,12 @@ async def get_blocked_user_message(user_id):
     result = cursor.fetchone()
     conn.close()
     return result[0] if result else None
+
+async def set_answered(user_id):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('''
+    DELETE FROM messages WHERE user_id = ?
+    ''', (user_id,))
+    conn.commit()
+    conn.close()
