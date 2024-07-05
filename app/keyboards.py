@@ -28,12 +28,11 @@ settings = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Ознакомиться', url='https://example.com')],
 ])
 
-login = ReplyKeyboardMarkup(
 
+login_keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text='Отправить контакт', request_contact=True)]
     ]
-
 )
 
 
@@ -62,7 +61,7 @@ user_keyboard_after_login = ReplyKeyboardMarkup(
 # Основная клавиатура для администраторов
 admin_keyboard = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text='Список пользователей')],
+        [KeyboardButton(text='Список пользователей')], [KeyboardButton(text='Список бан-пользователей')],
         [KeyboardButton(text='Неотвеченные сообщения')]
     ],
     resize_keyboard=True
@@ -73,7 +72,8 @@ admin_keyboard = ReplyKeyboardMarkup(
 def create_admin_inline_keyboard(message_id):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text='Ответить', callback_data=f'reply_{message_id}')]
+            [InlineKeyboardButton(text='Ответить', callback_data=f'reply_{message_id}')],
+            [InlineKeyboardButton(text='Забанить', callback_data=f'ban_{message_id}')]
         ]
     )
     return keyboard

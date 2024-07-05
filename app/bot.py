@@ -1,3 +1,4 @@
+import datetime
 import logging
 from environs import Env
 from dotenv import dotenv_values
@@ -7,9 +8,12 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram import Router
-from app.database import  add_message, get_unanswered_messages, respond_to_message, get_chat_id, get_message, \
-    get_all_users, check_user_or_registr, get_history
-from app.keyboards import user_keyboard, admin_keyboard, create_admin_inline_keyboard, user_keyboard_after_login
+from app.database import (add_message, get_unanswered_messages, respond_to_message, get_chat_id, get_message, \
+    get_all_users, check_user_or_registr, get_history,
+                          get_black_list, add_user, get_blocked_user_message,
+                          add_to_black_list)
+from app.keyboards import (login_keyboard, user_keyboard, admin_keyboard,
+                           create_admin_inline_keyboard, user_keyboard_after_login)
 
 
 config = dotenv_values()
@@ -18,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 env = Env()
 env.read_env()
 ADMIN_USER_ID = env.list("ADMINS")
-
+black_list = []
 
 router = Router()
 
@@ -33,31 +37,60 @@ class AnswerMessage(StatesGroup):
     waiting_for_reply = State()
 
 
+@router.message(Command("start"))
+async def start(message: Message):
+    black_list = await get_black_list()
+    user_id = str(message.from_user.id)
+    print(ADMIN_USER_ID)
+    print(black_list)
+    print(user_id)
+
+    if user_id in map(str, ADMIN_USER_ID):
+        keyboard = admin_keyboard
+    elif user_id in black_list:
+        await message.reply('Увы, вы в черном списке :(')
+    else:
+        keyboard = user_keyboard
+
+    await message.reply('Привет! Вас приветствует служба поддержки Транснефть.', reply_markup=keyboard)
+
+
 @router.message(F.contact)
 async def login(message: Message):
     check = await check_user_or_registr(message.from_user.id)
-    id = message.from_user.id
+    id = str(message.from_user.id)
+    msg = await get_blocked_user_message(id)
     if check:
-        await message.answer('Рады вас видеть снова, <b>'+ message.from_user.full_name +'</b>', parse_mode='HTML', reply_markup=user_keyboard_after_login)
+        if id in ADMIN_USER_ID:
+            await message.answer('Рады вас видеть снова, <b>'+ message.from_user.full_name +'</b>', parse_mode='HTML', reply_markup=admin_keyboard)
+        elif id in black_list:
+            await message.reply(f'Увы, вы в черном списке :(\n'
+                                f'за следующее сообщение: {msg}' )
+            return
+        else:
+            await message.answer('Рады вас видеть снова, <b>'+ message.from_user.full_name +'</b>', parse_mode='HTML', reply_markup=user_keyboard_after_login)
     else:
-        await message.answer(f'✔️Вы успешно зарегестрировались, <b>{message.from_user.full_name}</b>!', parse_mode='HTML', reply_markup=user_keyboard_after_login)
+        if id in ADMIN_USER_ID:
+            await add_user(message.from_user.id,message.from_user.username, message.contact.phone_number, message.from_user.full_name)
+            await message.answer(f'✔️Вы успешно зарегестрировались, <b>{message.from_user.full_name}</b>!',
+                                 parse_mode='HTML', reply_markup=admin_keyboard)
+        else:
+            await add_user(message.from_user.id, message.contact.phone_number, message.from_user.full_name)
+            await message.answer(f'✔️Вы успешно зарегестрировались, <b>{message.from_user.full_name}</b>!',
+                                 parse_mode='HTML', reply_markup=user_keyboard_after_login)
+
+
 
 @router.message(F.text == 'История запросов')
 async def history(message: Message):
     user = message.from_user.id
     history = await get_history(user)
-    user_history = "\n".join([f'❓: <b>{messages[0]}</b>\n🔎: <i>{messages[1]}</i> \n \n' for messages in history])
-    await message.answer(user_history, parse_mode='HTML')
-
-@router.message(Command("start"))
-async def start(message: Message):
-    print(ADMIN_USER_ID)
-    user = str(message.from_user.id)
-    if user in ADMIN_USER_ID:
-        keyboard = admin_keyboard
+    if history:
+        user_history = "\n".join([f'❓: <b>{messages[0]}</b>\n🔎: <i>{messages[1]}</i> \n \n' for messages in history])
+        await message.answer(user_history, parse_mode='HTML')
     else:
-        keyboard = user_keyboard
-    await message.reply(f'Привет! Вас приветствует служба поддержки Транснефть.', reply_markup=keyboard)
+        await message.answer('Вы не писали обращений :(', parse_mode='HTML')
+
 @router.message(Command("help"))
 async def help_command(message: Message, state: FSMContext):
     await state.set_state(HelpMessage.message_send)
@@ -119,18 +152,38 @@ async def handle_reply_callback(callback_query: CallbackQuery, state: FSMContext
     await callback_query.answer()
 
 
+@router.callback_query(F.data.startswith('ban_'))
+async def handle_ban_callback(callback_query: CallbackQuery, bot: Bot):
+    if str(callback_query.from_user.id) not in ADMIN_USER_ID:
+        await callback_query.answer('У вас нет доступа к этой функции.', show_alert=True)
+        return
+
+    message_id = callback_query.data.split('_')[1]
+    user = await get_chat_id(message_id, 0)
+    msg = await get_message(message_id, 0)
+    await add_to_black_list(user[0], msg[0])
+
+    await callback_query.answer(f'Пользователь {user[0]} добавлен в черный список')
+    await bot.send_message(user[0], 'Вы были забанены (')
+
+
+
 @router.message(F.text)
 async def handle_message(message: Message, state: FSMContext, bot: Bot):
     data = await state.get_data()
     current_state = await state.get_state()
-    user = message.from_user.id
+    user_id = message.from_user.id
+    black_list = await get_black_list()
+
+    if str(user_id) in black_list:
+        await message.reply('Вы заблокированы и не можете отправлять сообщения.')
+        return
+
     if current_state == AnswerMessage.waiting_for_reply.state:
-        # Ответ администратора на сообщение пользователя
-        if str(user) in ADMIN_USER_ID:
+        if str(user_id) in map(str, ADMIN_USER_ID):
             db_message_id = data['message_id']
             await respond_to_message(db_message_id, message.text)
             await message.reply(f'✅Ответ на сообщение {db_message_id} отправлен.')
-
             user_chat_id = await get_chat_id(db_message_id, 1)
             original_message = await get_message(db_message_id, 1)
             await bot.send_message(user_chat_id[0],
@@ -141,15 +194,13 @@ async def handle_message(message: Message, state: FSMContext, bot: Bot):
         else:
             print('Ошибка: текущее состояние - ожидание ответа, но сообщение не от администратора.')
     else:
-        # Сообщение от пользователя
-        if str(user) not in ADMIN_USER_ID:
+        if str(user_id) not in map(str, ADMIN_USER_ID):
             if current_state == HelpMessage.message_send.state:
                 user_message = message.text
-                user = message.from_user
-                db_message_id = await add_message(user.id, user_message)
+                db_message_id = await add_message(user_id, user_message)
                 await state.update_data(message_id=db_message_id, chat_id=message.chat.id, message_send=True)
                 await message.reply(f'✅Ваше сообщение: "{user_message}" получено. Ожидайте ответа.')
                 await state.clear()
             else:
-                await message.answer('Cначала нажмите кнопку Помощь❗❗❗')
+                await message.answer('Сначала нажмите кнопку Помощь❗️❗️❗️')
 

@@ -15,7 +15,7 @@ API_TOKEN = os.getenv('API_TOKEN')
 
 # Инициализация бота и диспетчера
 async def main():
- #   await create_tables()  # Инициализация базы данных
+    await create_table()  # Инициализация базы данных
     bot = Bot(token=API_TOKEN)
     dp = Dispatcher()
     dp.include_router(router)
