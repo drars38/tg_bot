@@ -24,7 +24,7 @@ message_confirm = ReplyKeyboardMarkup(keyboard=[
 ], input_field_placeholder='Выберите пункт меню.')
 
 # Inline клавиатура для настроек
-settings = InlineKeyboardMarkup(inline_keyboard=[
+company_info = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Ознакомиться', url='https://example.com')],
 ])
 
@@ -39,9 +39,10 @@ login_keyboard = ReplyKeyboardMarkup(
 # Основная клавиатура для обычных пользователей
 user_keyboard = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text='Помощь')],
+
         [KeyboardButton(text='Зарегистрироваться', request_contact=True)],
-        [KeyboardButton(text='О компании'), KeyboardButton(text='Задать вопрос')],
+        [KeyboardButton(text='Помощь')],
+        [KeyboardButton(text='О компании')],
         [KeyboardButton(text='Инвесторам и акционерам'), KeyboardButton(text='Клиентам')],
         [KeyboardButton(text='Войти в аккаунт', request_contact=True)]
         ],
@@ -51,7 +52,7 @@ user_keyboard = ReplyKeyboardMarkup(
 user_keyboard_after_login = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text='Помощь')], [KeyboardButton(text='История запросов')],
-        [KeyboardButton(text='О компании'), KeyboardButton(text='Задать вопрос')],
+        [KeyboardButton(text='О компании')],
         [KeyboardButton(text='Инвесторам и акционерам'), KeyboardButton(text='Клиентам')]
         ],
     resize_keyboard=True , input_field_placeholder='Выберите пункт меню.'
@@ -86,3 +87,12 @@ banned_user = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True
 )
+
+def unban_user_keyboard(user_id):
+    unban_kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text='Разбанить', callback_data=f'unban_{user_id}')],
+            [InlineKeyboardButton(text='Установить временные рамки бана',callback_data=f'time_{user_id}')]
+        ]
+    )
+    return unban_kb

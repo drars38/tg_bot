@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c112a587-e906-420a-87ca-43f8e2d87d62" name="Changes" comment="черный список пофиксить">
+    <list default="true" id="c112a587-e906-420a-87ca-43f8e2d87d62" name="Changes" comment="черный список доделать">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/admin.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/admin.py" beforeDir="false" />
@@ -46,9 +46,9 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="UPDATE_TYPE" value="REBASE" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {}
-}]]></component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {}
+}</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/drars38/tg_bot&quot;,
@@ -64,17 +64,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.database.executor": "Run",
-    "Python.generator.executor": "Run",
-    "Python.request.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/Users/123/PycharmProjects/pythonProject2",
-    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.database.executor&quot;: &quot;Run&quot;,
+    &quot;Python.generator.executor&quot;: &quot;Run&quot;,
+    &quot;Python.request.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/123/PycharmProjects/pythonProject2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="database" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject2" />
@@ -184,7 +184,15 @@
       <option name="project" value="LOCAL" />
       <updated>1720166743782</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="черный список доделать">
+      <option name="closed" value="true" />
+      <created>1720170253197</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1720170253197</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -206,6 +214,7 @@
     <MESSAGE value="общение с тех. поддержкой налажено" />
     <MESSAGE value="админу проще отвечать полльзователям" />
     <MESSAGE value="черный список пофиксить" />
-    <option name="LAST_COMMIT_MESSAGE" value="черный список пофиксить" />
+    <MESSAGE value="черный список доделать" />
+    <option name="LAST_COMMIT_MESSAGE" value="черный список доделать" />
   </component>
 </project>
