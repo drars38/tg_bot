@@ -2,6 +2,7 @@ import sqlite3
 
 DATABASE = 'support_bot.db'
 
+
 async def create_table():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -20,7 +21,7 @@ async def create_table():
         message TEXT,
         response TEXT,
         answered INTEGER DEFAULT 0,
-        banned INTEGER DEFAULT 0,  -- Новый столбец для хранения информации о том, было ли сообщение отправлено заблокированным пользователем
+        banned INTEGER DEFAULT 0,  
         FOREIGN KEY(user_id) REFERENCES users(user_id)
     )
     ''')
@@ -32,6 +33,8 @@ async def create_table():
     ''')
     conn.commit()
     conn.close()
+
+
 async def add_user(user_id, username, phone_number, full_name):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -41,7 +44,8 @@ async def add_user(user_id, username, phone_number, full_name):
     conn.commit()
     conn.close()
 
-async def get_username(user_id):
+
+async def get_first_name(user_id):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.execute('SELECT first_name FROM users WHERE user_id = ?',
@@ -49,6 +53,17 @@ async def get_username(user_id):
     result = cursor.fetchall()
     conn.close()
     return result[0] if result else None
+
+
+async def get_username(user_id):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('SELECT username FROM users WHERE user_id = ?',
+                   (user_id,))
+    result = cursor.fetchall()
+    conn.close()
+    return result[0] if result else None
+
 
 async def add_message(user_id, message):
     conn = sqlite3.connect(DATABASE)
@@ -58,6 +73,7 @@ async def add_message(user_id, message):
     ''', (user_id, message))
     conn.commit()
     conn.close()
+
 
 async def get_unanswered_messages():
     conn = sqlite3.connect(DATABASE)
@@ -69,6 +85,7 @@ async def get_unanswered_messages():
     conn.close()
     return rows
 
+
 async def respond_to_message(message_id, response):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -77,6 +94,7 @@ async def respond_to_message(message_id, response):
     ''', (response, message_id))
     conn.commit()
     conn.close()
+
 
 async def get_respond(message_id):
     conn = sqlite3.connect(DATABASE)
@@ -88,6 +106,7 @@ async def get_respond(message_id):
     conn.close()
     return rows
 
+
 async def get_chat_id(message_id, answered):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -97,6 +116,7 @@ async def get_chat_id(message_id, answered):
     row = cursor.fetchone()
     conn.close()
     return row
+
 
 async def get_message(message_id, answered):
     conn = sqlite3.connect(DATABASE)
@@ -108,6 +128,7 @@ async def get_message(message_id, answered):
     conn.close()
     return row
 
+
 async def get_all_users():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -116,6 +137,7 @@ async def get_all_users():
     conn.close()
     return rows
 
+
 async def check_user_or_registr(user_id):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -123,6 +145,7 @@ async def check_user_or_registr(user_id):
     row = cursor.fetchone()
     conn.close()
     return row
+
 
 async def get_history(user_id):
     conn = sqlite3.connect(DATABASE)
@@ -134,6 +157,7 @@ async def get_history(user_id):
     conn.close()
     return row
 
+
 async def get_black_list():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -141,6 +165,7 @@ async def get_black_list():
     result = cursor.fetchall()
     conn.close()
     return [row[0] for row in result]
+
 
 async def add_to_black_list(user_id, message):
     conn = sqlite3.connect(DATABASE)
@@ -154,6 +179,7 @@ async def add_to_black_list(user_id, message):
     conn.commit()
     conn.close()
 
+
 async def get_blocked_user_message(user_id):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -161,6 +187,7 @@ async def get_blocked_user_message(user_id):
     result = cursor.fetchone()
     conn.close()
     return result[0] if result else None
+
 
 async def unban_user(user_id):
     conn = sqlite3.connect(DATABASE)

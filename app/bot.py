@@ -40,7 +40,7 @@ class AnswerMessage(StatesGroup):
 
 @router.message(Command("start"))
 async def start(message: Message):
-    await message.reply(f'Привет! Вас приветствует служба поддержки Транснефть. Пройдите регистрацию', reply_markup=login_keyboard)
+    await message.reply(f'👋Вас приветствует служба поддержки Транснефть. Пройдите регистрацию', reply_markup=login_keyboard)
 
 @router.message(F.contact)
 async def login(message: Message):
@@ -49,13 +49,13 @@ async def login(message: Message):
     msg = await get_blocked_user_message(id)
     if check:
         if id in ADMIN_USER_ID:
-            await message.answer('Рады вас видеть снова, <b>'+ message.from_user.full_name +'</b>', parse_mode='HTML', reply_markup=admin_keyboard)
+            await message.answer('👋Рады вас видеть снова, <b>'+ message.from_user.full_name +'</b>', parse_mode='HTML', reply_markup=admin_keyboard)
         elif id in black_list:
-            await message.reply(f'Увы, вы в черном списке :(\n'
+            await message.reply(f'🏴Увы, вы в черном списке :(\n'
                                 f'за следующее сообщение: {msg}' )
             return
         else:
-            await message.answer('Рады вас видеть снова, <b>'+ message.from_user.full_name +'</b>', parse_mode='HTML', reply_markup=user_keyboard_after_login)
+            await message.answer('👋Рады вас видеть снова, <b>'+ message.from_user.full_name +'</b>', parse_mode='HTML', reply_markup=user_keyboard_after_login)
     else:
         if id in ADMIN_USER_ID:
             await add_user(message.from_user.id,message.from_user.username, message.contact.phone_number, message.from_user.full_name)
@@ -74,12 +74,12 @@ async def history(message: Message):
         user_history = "\n".join([f'❓: <b>{messages[0]}</b>\n🔎: <i>{messages[1]}</i> \n \n' for messages in history])
         await message.answer(user_history, parse_mode='HTML')
     else:
-        await message.answer('Вы не писали обращений :(', parse_mode='HTML')
+        await message.answer('😭Вы еще не получили ответов на ваши обращения\n🦾уже разбираемся <b>:(</b>', parse_mode='HTML')
 
 @router.message(Command("help"))
 async def help_command(message: Message, state: FSMContext):
     await state.set_state(HelpMessage.message_send)
-    await message.reply('Задайте ваш вопрос, и наша поддержка скоро свяжется с вами.')
+    await message.reply('Задайте ваш вопрос, поддержка скоро свяжется с вами. 🛠️')
 
 @router.message(F.text == 'Помощь')
 async def help_button(message: Message, state: FSMContext):
@@ -106,7 +106,7 @@ async def black_list_users_button(message: Message):
         for i in black_list:
             msg = str(await get_blocked_user_message(str(i)))
             keyboard = unban_user_keyboard(str(i))
-            await message.answer(f'Забаненный пользователь: <b>{str(i)}</b> из-за сообщения - <b>{msg}</b>', parse_mode='HTML', reply_markup=keyboard)
+            await message.answer(f'🏴Забаненный пользователь: <b>{str(i)}</b> из-за сообщения - <b>{msg}</b>', parse_mode='HTML', reply_markup=keyboard)
 
 @router.message(F.text == 'Неотвеченные сообщения')
 async def list_unanswered_button(message: Message, state: FSMContext):
@@ -156,7 +156,7 @@ async def handle_unban_callback(callback_query: CallbackQuery, bot: Bot):
     user_id = callback_query.data.split('_')[1]
     await unban_user(user_id)
     await callback_query.answer(f'Пользователь {user_id} разбанен.')
-    await bot.send_message(str(user_id), 'Вы были разбанены🎉🎉🎉', reply_markup=user_keyboard_after_login)
+    await bot.send_message(str(user_id), 'Вы были разбанены🎉', reply_markup=user_keyboard_after_login)
 
 @router.callback_query(F.data.startswith('ban_'))
 async def handle_ban_callback(callback_query: CallbackQuery, bot: Bot):
@@ -167,8 +167,8 @@ async def handle_ban_callback(callback_query: CallbackQuery, bot: Bot):
     user = await get_chat_id(message_id, 0)
     msg = await get_message(message_id, 0)
     await add_to_black_list(user[0], msg[0])
-    await callback_query.answer(f'Пользователь {user[0]} добавлен в черный список')
-    await bot.send_message(user[0], f'Вы были забанены за сообщение <b>{msg[0]}</b>', parse_mode='HTML', reply_markup=banned_user)
+    await callback_query.answer(f'🏴Пользователь {user[0]} добавлен в черный список🏴')
+    await bot.send_message(user[0], f'🏴Вы были забанены за сообщение <b>{msg[0]}</b>', parse_mode='HTML', reply_markup=banned_user)
 
 
 
@@ -176,16 +176,21 @@ async def handle_ban_callback(callback_query: CallbackQuery, bot: Bot):
 async def info(message: Message):
     await message.reply('Тут большая история', reply_markup=company_info)
 
-@router.message(F.text == 'Инвесторам и акционерам')
+@router.message(F.text == 'Новости "Транснефти"')
 async def investors(message: Message):
-    await message.reply('Информация для инвесторов')
+    await message.reply('Новости')
 
 @router.message(F.text == 'Клиентам')
-async def clients(message: Message):
-    await message.reply('Информация для клиентов')
+async def clients(message: Message, bot: Bot):
+    await message.reply(f'Контактная информация\n'
+                        f'Отдел делопроизводства\n'
+                        f'Телефоны: +7 (3953) 300-701, +7 (3953) 300-709\n'
+                        f'Email: vsmn@vsmn.transneft.ru')
+    await bot.send_location(message.from_user.id, 56.313259, 101.739587)
 
 @router.message(F.text)
 async def handle_message(message: Message, state: FSMContext, bot: Bot):
+    await bot.send_chat_action(message.from_user.id, action="typing")
     data = await state.get_data()
     current_state = await state.get_state()
     user_id = message.from_user.id
