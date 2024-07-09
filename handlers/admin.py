@@ -5,13 +5,13 @@ from aiogram.fsm.context import FSMContext
 from app.database import (
     get_unanswered_messages, get_chat_id, get_message,
     get_all_users, get_blocked_user_message, unban_user, get_first_name, add_to_black_list,
-    get_black_list, get_username
+    get_black_list, get_username, set_response_with_ai, get_respond
 )
 from app.keyboards import (
     create_admin_inline_keyboard, unban_user_keyboard, user_keyboard_after_login,
     banned_user
 )
-from config import ADMIN_USER_ID
+from config import ADMIN_USER_ID, escape_markdown_v2
 from handlers.help import AnswerMessage
 
 router = Router()
@@ -61,12 +61,14 @@ async def list_users(message: Message):
         await message.answer('Вы не админ')
         return
     users = await get_all_users()
-    user_list = ' '
+    user_list = ''
+    counter = 0
     for user in users:
+        counter+=1
         if user[1] is not None:
-            user_list += "\n".join([f'@{user[1]}: <a href="tg://user?id={user[0]}">{user[2]}</a> {user[3]}\n'])
+            user_list += "\n".join([f'{counter}. @{user[1]}: <a href="tg://user?id={user[0]}">{user[2]}</a> {user[3]}\n\n'])
         else:
-            user_list += "\n".join([f'<a href="tg://user?id={user[0]}">{user[2]}</a> {user[3]}\n'])
+            user_list += "\n".join([f'{counter}. НЕТ ID: <a href="tg://user?id={user[0]}">{user[2]}</a> {user[3]}\n\n'])
     await message.reply(f'Зарегистрированные пользователи:\n{user_list}', parse_mode='HTML')
 
 
@@ -82,15 +84,19 @@ async def list_unanswered(message: Message):
         keyboard = create_admin_inline_keyboard(msg[0])
         first_name = await get_first_name(str(msg[1]))
         username = await get_username(str(msg[1]))
+        ai_respond = escape_markdown_v2(str(msg[3]))
+        #print(ai_respond)
         if username[0] is not None:
             await message.reply(
                 f'Сообщение от пользователя <a href="tg://user?id={msg[1]}">{first_name[0]}</a>'
                 f' (@{username[0]}) :\n"{msg[2]}"',
                 reply_markup=keyboard, parse_mode='HTML')
+            await message.answer(f'🤖: {ai_respond}', parse_mode='MarkdownV2')
         else:
             await message.reply(
                 f'Сообщение от пользователя <a href="tg://user?id={msg[1]}">{first_name[0]}</a>:\n"{msg[2]}"',
                 reply_markup=keyboard, parse_mode='HTML')
+            await message.answer(f'🤖: {ai_respond}', parse_mode='MarkdownV2')
 
 
 @router.callback_query(F.data.startswith('reply_'))
@@ -128,3 +134,19 @@ async def handle_ban_callback(callback_query: CallbackQuery, bot: Bot):
     await callback_query.answer(f'🏴Пользователь {user[0]} добавлен в черный список🏴')
     await bot.send_message(user[0], f'🏴Вы были забанены за сообщение <b>{msg[0]}</b>', parse_mode='HTML',
                            reply_markup=banned_user)
+
+
+@router.callback_query(F.data.startswith('confirm_'))
+async def handle_confirm_callback(callback_query: CallbackQuery, bot: Bot):
+    if str(callback_query.from_user.id) not in ADMIN_USER_ID:
+        await callback_query.answer('У вас нет доступа к этой функции.', show_alert=True)
+        return
+    message_id = callback_query.data.split('_')[1]
+    user = await get_chat_id(message_id, 0)
+    await set_response_with_ai(message_id, 0)
+    await callback_query.answer(f'Ответ от ии отправлен')
+    await bot.send_message(user[0], f'Ответ ИИ был категорически правильным')
+
+
+
+

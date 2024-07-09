@@ -79,7 +79,7 @@ async def get_unanswered_messages():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.execute('''
-    SELECT message_id, user_id, message FROM messages WHERE answered = 0 AND banned = 0
+    SELECT message_id, user_id, message, ai_response FROM messages WHERE answered = 0 AND banned = 0
     ''')
     rows = cursor.fetchall()
     conn.close()
@@ -94,6 +94,25 @@ async def respond_to_message(message_id, response):
     ''', (response, message_id))
     conn.commit()
     conn.close()
+
+async def ai_respond(ai_response ,message):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE messages SET ai_response = ? WHERE message = ?
+    ''', (ai_response, message))
+    conn.commit()
+    conn.close()
+
+async def set_response_with_ai(message_id, answered):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE messages SET response = ai_response, answered = 1 WHERE message_id = ? AND answered = ?
+    ''', (message_id, answered))
+    conn.commit()
+    conn.close()
+
 
 
 async def get_respond(message_id):

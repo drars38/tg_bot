@@ -28,7 +28,7 @@ user_keyboard_after_login = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text='Помощь')], [KeyboardButton(text='История запросов')],
         [KeyboardButton(text='О компании')],
-        [KeyboardButton(text='Новости сообщества'), KeyboardButton(text='Клиентам')]
+        [KeyboardButton(text='Клиентам')]
     ],
     resize_keyboard=True, input_field_placeholder='Выберите пункт меню.'
 )
@@ -48,7 +48,8 @@ def create_admin_inline_keyboard(message_id):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text='Ответить', callback_data=f'reply_{message_id}')],
-            [InlineKeyboardButton(text='Забанить', callback_data=f'ban_{message_id}')]
+            [InlineKeyboardButton(text='Забанить', callback_data=f'ban_{message_id}')],
+            [InlineKeyboardButton(text='Отправить ответ ИИ', callback_data=f'confirm_{message_id}')]
         ]
     )
     return keyboard
@@ -70,3 +71,12 @@ def unban_user_keyboard(user_id):
         ]
     )
     return unban_kb
+
+def bad_ai_response(message_id):
+    bad_ai_response=InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text='Плохой ответ❌' , callback_data=f'bad_answer_{message_id}')],
+            [InlineKeyboardButton(text='Хороший ответ✅', callback_data=f'good_answer_{message_id}')]
+        ]
+    )
+    return bad_ai_response
