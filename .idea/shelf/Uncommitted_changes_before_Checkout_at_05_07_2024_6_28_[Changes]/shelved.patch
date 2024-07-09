@@ -1,0 +1,129 @@
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"c112a587-e906-420a-87ca-43f8e2d87d62\" name=\"Changes\" comment=\"админу проще отвечать полльзователям\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/admin.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/app/admin.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/app/bot.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/app/bot.py\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/app/builder.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/app/database.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/app/database.py\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/app/generator.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/app/handlers.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/app/keyboards.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/app/keyboards.py\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/bot.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/builder.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/database.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/database/models.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/database/request.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/generator.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/handlers.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/keyboards.py\" beforeDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/run.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/run.py\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Python Script\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;drars38&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\">{\r\n  &quot;selectedUrlAndAccountId&quot;: {\r\n    &quot;url&quot;: &quot;https://github.com/drars38/tg_bot&quot;,\r\n    &quot;accountId&quot;: &quot;f617fd78-3608-45f1-8cff-afb2a213c87c&quot;\r\n  }\r\n}</component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 5\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"2icjklBghxqMYk5oVQSXBPOPrLf\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">{\r\n  &quot;keyToString&quot;: {\r\n    &quot;Python.generator.executor&quot;: &quot;Run&quot;,\r\n    &quot;Python.request.executor&quot;: &quot;Run&quot;,\r\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\r\n    &quot;git-widget-placeholder&quot;: &quot;master&quot;,\r\n    &quot;last_opened_file_path&quot;: &quot;C:/Users/123/PycharmProjects/pythonProject2&quot;\r\n  }\r\n}</component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-python-sdk-5b207ade9991-746f403e7f0c-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.17890.14\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"c112a587-e906-420a-87ca-43f8e2d87d62\" name=\"Changes\" comment=\"\" />\r\n      <created>1719796904564</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1719796904564</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"broken messages sending\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1719797230602</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1719797230602</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"generators not work\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1719878571797</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1719878571797</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"get_employee in request.py работает странно, пустой массив возвращает\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1719906220315</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1719906220315</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"get_employee in request.py работает странно, пустой массив возвращает\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1719906256343</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1719906256343</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00005\" summary=\"что то с типом данных у list в get_employee()\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1719910350523</created>\r\n      <option name=\"number\" value=\"00005\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00005\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1719910350523</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00006\" summary=\"общение с тех. поддержкой налажено\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1720079570658</created>\r\n      <option name=\"number\" value=\"00006\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00006\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1720079570658</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00007\" summary=\"админу проще отвечать полльзователям\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1720142532317</created>\r\n      <option name=\"number\" value=\"00007\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00007\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1720142532317</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"8\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"broken messages sending\" />\r\n    <MESSAGE value=\"generators not work\" />\r\n    <MESSAGE value=\"get_employee in request.py работает странно, пустой массив возвращает\" />\r\n    <MESSAGE value=\"что то с типом данных у list в get_employee()\" />\r\n    <MESSAGE value=\"общение с тех. поддержкой налажено\" />\r\n    <MESSAGE value=\"админу проще отвечать полльзователям\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"админу проще отвечать полльзователям\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	
++++ b/.idea/workspace.xml	
+@@ -4,25 +4,17 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="c112a587-e906-420a-87ca-43f8e2d87d62" name="Changes" comment="админу проще отвечать полльзователям">
+-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++    <list default="true" id="c112a587-e906-420a-87ca-43f8e2d87d62" name="Changes" comment="бот готов">
+       <change beforePath="$PROJECT_DIR$/admin.py" beforeDir="false" />
+       <change beforePath="$PROJECT_DIR$/app/admin.py" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/app/bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/bot.py" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/app/builder.py" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/app/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/database.py" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/app/generator.py" beforeDir="false" />
+       <change beforePath="$PROJECT_DIR$/app/handlers.py" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/app/keyboards.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/keyboards.py" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/bot.py" beforeDir="false" />
+       <change beforePath="$PROJECT_DIR$/builder.py" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/database.py" beforeDir="false" />
+       <change beforePath="$PROJECT_DIR$/database/models.py" beforeDir="false" />
+       <change beforePath="$PROJECT_DIR$/database/request.py" beforeDir="false" />
+       <change beforePath="$PROJECT_DIR$/generator.py" beforeDir="false" />
+       <change beforePath="$PROJECT_DIR$/handlers.py" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/keyboards.py" beforeDir="false" />
+-      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -37,6 +29,11 @@
+     </option>
+   </component>
+   <component name="Git.Settings">
++    <option name="RECENT_BRANCH_BY_REPOSITORY">
++      <map>
++        <entry key="$PROJECT_DIR$" value="master" />
++      </map>
++    </option>
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+   </component>
+   <component name="GitHubPullRequestSearchHistory">{
+@@ -60,15 +57,15 @@
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent">{
+-  &quot;keyToString&quot;: {
+-    &quot;Python.generator.executor&quot;: &quot;Run&quot;,
+-    &quot;Python.request.executor&quot;: &quot;Run&quot;,
+-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+-    &quot;last_opened_file_path&quot;: &quot;C:/Users/123/PycharmProjects/pythonProject2&quot;
++  <component name="PropertiesComponent"><![CDATA[{
++  "keyToString": {
++    "Python.generator.executor": "Run",
++    "Python.request.executor": "Run",
++    "RunOnceActivity.ShowReadmeOnStart": "true",
++    "git-widget-placeholder": "full",
++    "last_opened_file_path": "C:/Users/123/PycharmProjects/pythonProject2"
+   }
+-}</component>
++}]]></component>
+   <component name="SharedIndexes">
+     <attachedChunks>
+       <set>
+@@ -141,7 +138,23 @@
+       <option name="project" value="LOCAL" />
+       <updated>1720142532317</updated>
+     </task>
+-    <option name="localTasksCounter" value="8" />
++    <task id="LOCAL-00008" summary="бот готов">
++      <option name="closed" value="true" />
++      <created>1720149664236</created>
++      <option name="number" value="00008" />
++      <option name="presentableId" value="LOCAL-00008" />
++      <option name="project" value="LOCAL" />
++      <updated>1720149664236</updated>
++    </task>
++    <task id="LOCAL-00009" summary="бот готов">
++      <option name="closed" value="true" />
++      <created>1720149849542</created>
++      <option name="number" value="00009" />
++      <option name="presentableId" value="LOCAL-00009" />
++      <option name="project" value="LOCAL" />
++      <updated>1720149849542</updated>
++    </task>
++    <option name="localTasksCounter" value="10" />
+     <servers />
+   </component>
+   <component name="Vcs.Log.Tabs.Properties">
+@@ -149,7 +162,19 @@
+       <map>
+         <entry key="MAIN">
+           <value>
+-            <State />
++            <State>
++              <option name="FILTERS">
++                <map>
++                  <entry key="branch">
++                    <value>
++                      <list>
++                        <option value="full" />
++                      </list>
++                    </value>
++                  </entry>
++                </map>
++              </option>
++            </State>
+           </value>
+         </entry>
+       </map>
+@@ -162,6 +187,7 @@
+     <MESSAGE value="что то с типом данных у list в get_employee()" />
+     <MESSAGE value="общение с тех. поддержкой налажено" />
+     <MESSAGE value="админу проще отвечать полльзователям" />
+-    <option name="LAST_COMMIT_MESSAGE" value="админу проще отвечать полльзователям" />
++    <MESSAGE value="бот готов" />
++    <option name="LAST_COMMIT_MESSAGE" value="бот готов" />
+   </component>
+ </project>
+\ No newline at end of file

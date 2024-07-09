@@ -1,0 +1,1034 @@
+Index: app/builder.py
+===================================================================
+diff --git a/app/builder.py b/app/builder.py
+deleted file mode 100644
+--- a/app/builder.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,17 +0,0 @@
+-from aiogram.types import KeyboardButton, InlineKeyboardButton
+-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+-#from app.database.request import get_employee
+-
+-
+-data = ('Коллега 1','Коллега 2','Коллега 3')
+-async def choose_college():
+-
+-    keyboard = InlineKeyboardBuilder()
+-    for i in data:
+-        keyboard.add(InlineKeyboardButton(text= str(i), url = f'tg://user?id={427368318}'))
+-    return keyboard.adjust(2).as_markup()
+-
+-
+-
+-
+-
+Index: database/request.py
+===================================================================
+diff --git a/database/request.py b/database/request.py
+deleted file mode 100644
+--- a/database/request.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,22 +0,0 @@
+-from app.database.models import async_session
+-from app.database.models import User, Info
+-from sqlalchemy import select, update, delete, desc
+-
+-list = ['0', '1', '2']
+-
+-async def set_user(tg_id, nickname,phone_number):
+-    async with async_session() as session:
+-        user = await session.scalar(select(User).where(User.tg_id == tg_id,
+-                                                       User.nickname == nickname,
+-                                                       User.phone_number == phone_number))
+-
+-        if not user:
+-            session.add(User(tg_id=tg_id, nickname = nickname , phone_number = phone_number))
+-            await session.commit()
+-
+-
+-async def get_info(id):
+-    async with async_session() as session:
+-       result = await session.execute(select(Info.txt_info).where(Info.id == id))
+-       return result.scalar()
+-
+Index: app/handlers.py
+===================================================================
+diff --git a/app/handlers.py b/app/handlers.py
+deleted file mode 100644
+--- a/app/handlers.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,132 +0,0 @@
+-from aiogram.types import Message, CallbackQuery
+-from aiogram import Router, F, Bot
+-from aiogram.fsm.context import FSMContext
+-from aiogram.fsm.state import State, StatesGroup
+-from aiogram.enums import ChatAction
+-import app.keyboards as kb
+-from aiogram.filters import CommandStart
+-import app.builder as builder
+-
+-
+-router = Router()
+-
+-
+-
+-class User(StatesGroup):
+-    name = State()
+-    number = State()
+-    contact = State()
+-    user_id = State()
+-    chat_id = State()
+-
+-
+-
+-@router.message(CommandStart())
+-async def cmd_start(message: Message, state: FSMContext):
+-    await state.set_state(User.name)  # Установка состояния User.name
+-    await message.answer(f'Привет! Для регистрации отправьте свой контакт, кнопка ниже', reply_markup=kb.login)
+-
+-@router.message(F.contact)
+-async def handle_contact(message: Message, state: FSMContext):
+-    # Выводим данные контакта в терминал
+-    await state.update_data(name = message.contact.first_name)
+-    await state.update_data(number = message.contact.phone_number)
+-    await state.update_data(user_id = message.from_user.id)
+-    await state.update_data(chat_id = message.chat.id)
+-    data = await state.get_data()
+-    print('Новый контакт:')
+-    print('Имя: ' + data['name'])
+-    print('Номер телефона: ' + data['number'])
+-    print('ID пользователя: ' + str(data['user_id']))
+-    print('ID чата:' + str(data['chat_id']))
+-    data = await state.get_data()
+-    await message.answer(f'Рады видеть тебя, {data['name']}!', reply_markup=kb.main)
+-    if message.contact.user_id == message.from_user.id:
+-        await set_user(message.from_user.id, message.contact.first_name, message.contact.phone_number)
+-        await state.clear()
+-
+-
+-
+-@router.message(F.text == 'Войти в аккаунт' )
+-async def login(message: Message, state: FSMContext):
+-    if User.name == None:
+-        await message.answer('Авторизация...' + User.name)
+-        #   в бд поиск аккаунта
+-
+-
+-# Обработка коллбэков для InlineKeyboardButton
+-@router.callback_query(F.data == 'callback_info')
+-async def info_callback(call: CallbackQuery):
+-    await call.message.answer('Тут большая история')
+-
+-
+-# Обработка текстовых сообщений для ReplyKeyboardButton
+-@router.message(F.text == 'О компании')
+-async def info(message: Message):
+-    await message.reply('Тут большая история', reply_markup=kb.settings)
+-
+-
+-@router.message(F.text == 'Задать вопрос')
+-async def development(message: Message):
+-    await message.answer('запрос', reply_markup=kb.inner_main)
+-
+-
+-@router.message(F.text == 'Инвесторам и акционерам')
+-async def investors(message: Message):
+-    await message.reply(str(await get_info('Информация для инвесторов')))
+-
+-
+-@router.message(F.text == 'Клиентам')
+-async def clients(message: Message):
+-    await message.reply(str(await get_info('Информация для клиентов')))
+-
+-
+-@router.message(F.text == 'Назад')
+-async def cmd_start(message: Message):
+-    await message.answer('И снова здравствуйте!', reply_markup=kb.main)
+-
+-
+-@router.message(F.text == 'Написать коллеге')
+-async def send_to_college(message: Message, bot: Bot):
+-    await message.answer("Выберите получателя:", reply_markup= await builder.choose_college())
+-
+-@router.message(F.text == 'Тех. поддержка')
+-async def chat(message: Message, bot: Bot):
+-    help_user_id = message.from_user.id
+-    msg = message.answer(message.chat.id, 'Задайте вопрос', reply_markup=kb.message_confirm)
+-
+-
+-
+-
+-
+-
+-
+-
+-@router.message(F.text == 'Развлечения')
+-async def ai_chat(message: Message):
+-    await message.reply('Интеграция gamee')
+-@router.message(F.user_shared)
+-async def on_user_shared(message: Message):
+-    print(
+-        f"Request {message.user_shared.request_id}. "
+-        f"User ID: {message.user_shared.user_id}"
+-    )
+-    await message.bot.send_chat_action(chat_id=message.from_user.id, action=ChatAction.TYPING)
+-    await message.bot.send_message(chat_id=message.user_shared.user_id, text='Тут сообщение от пользователя')
+-
+-@router.message(F.text)
+-async def send_message(message: Message):
+-    user_name = str(message.from_user.full_name)
+-    user_url = str(message.from_user.url)
+-    await message.answer(f'Вам пришло сообщение от <a href="{user_url}">{user_name}</a>', parse_mode='HTML')
+-
+-
+-@router.message(F.data.startswith('send_to_'))
+-async def inp_message(callback: CallbackQuery):
+-    await callback.message.answer('Ваша корзина пуста.')
+-
+-@router.message(F.text == 'Отправить')
+-async def on_user_send(message: Message):
+-    message.answer('Сообщение  отправлено')
+-
+-
+Index: builder.py
+===================================================================
+diff --git a/builder.py b/builder.py
+deleted file mode 100644
+--- a/builder.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,18 +0,0 @@
+-from aiogram.types import KeyboardButton, InlineKeyboardButton
+-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+-#from app.database.request import get_employee
+-from app.database.models import User
+-from app.database.request import list
+-
+-data = ('Коллега 1','Коллега 2','Коллега 3')
+-async def choose_college():
+-
+-    keyboard = InlineKeyboardBuilder()
+-    for i in data:
+-        keyboard.add(InlineKeyboardButton(text= str(i), url = f'tg://user?id={427368318}'))
+-    return keyboard.adjust(2).as_markup()
+-
+-
+-
+-
+-
+Index: keyboards.py
+===================================================================
+diff --git a/keyboards.py b/keyboards.py
+deleted file mode 100644
+--- a/keyboards.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,31 +0,0 @@
+-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+-
+-# Основная клавиатура для обычных пользователей
+-user_keyboard = ReplyKeyboardMarkup(
+-    keyboard=[
+-        [KeyboardButton(text='Помощь')],
+-        [KeyboardButton(text='Зарегистрироваться', request_contact=True)]
+-    ],
+-    resize_keyboard=True
+-)
+-
+-# Основная клавиатура для администраторов
+-admin_keyboard = ReplyKeyboardMarkup(
+-    keyboard=[
+-        [KeyboardButton(text='Помощь')],
+-        [KeyboardButton(text='Зарегистрироваться', request_contact=True)],
+-        [KeyboardButton(text='Список пользователей')],
+-        [KeyboardButton(text='Неотвеченные сообщения')]
+-    ],
+-    resize_keyboard=True
+-)
+-
+-
+-# Inline-клавиатура для админов
+-def create_admin_inline_keyboard(message_id):
+-    keyboard = InlineKeyboardMarkup(
+-        inline_keyboard=[
+-            [InlineKeyboardButton(text='Ответить', callback_data=f'reply_{message_id}')]
+-        ]
+-    )
+-    return keyboard
+Index: app/database/request.py
+===================================================================
+diff --git a/app/database/request.py b/app/database/request.py
+deleted file mode 100644
+--- a/app/database/request.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,22 +0,0 @@
+-from app.database.models import async_session
+-from app.database.models import User, Info
+-from sqlalchemy import select, update, delete, desc
+-
+-list = ['0', '1', '2']
+-
+-async def set_user(tg_id, nickname,phone_number):
+-    async with async_session() as session:
+-        user = await session.scalar(select(User).where(User.tg_id == tg_id,
+-                                                       User.nickname == nickname,
+-                                                       User.phone_number == phone_number))
+-
+-        if not user:
+-            session.add(User(tg_id=tg_id, nickname = nickname , phone_number = phone_number))
+-            await session.commit()
+-
+-
+-async def get_info(id):
+-    async with async_session() as session:
+-       result = await session.execute(select(Info.txt_info).where(Info.id == id))
+-       return result.scalar()
+-
+Index: database/models.py
+===================================================================
+diff --git a/database/models.py b/database/models.py
+deleted file mode 100644
+--- a/database/models.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,34 +0,0 @@
+-from sqlalchemy import ForeignKey, String, BigInteger, Boolean
+-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
+-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
+-
+-                    ###########          from config import DB_URL
+-
+-engine = create_async_engine(url='sqlite+aiosqlite:///db.sqlite3',
+-                             echo=True)
+-
+-async_session = async_sessionmaker(engine)
+-
+-
+-class Base(AsyncAttrs, DeclarativeBase):
+-    pass
+-
+-
+-class User(Base):
+-    __tablename__ = 'users'
+-
+-    tg_id = mapped_column(BigInteger, primary_key=True)
+-    nickname = mapped_column(String)
+-    phone_number = mapped_column(BigInteger)
+-    is_admin = mapped_column(Boolean, default=False)
+-
+-
+-class Info(Base):
+-    __tablename__ = 'data'
+-
+-    id = mapped_column(String, primary_key=True)
+-    txt_info = mapped_column(String)
+-
+-async def async_main():
+-    async with engine.begin() as conn:
+-        await conn.run_sync(Base.metadata.create_all)
+\ No newline at end of file
+Index: database.py
+===================================================================
+diff --git a/database.py b/database.py
+deleted file mode 100644
+--- a/database.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,73 +0,0 @@
+-import sqlite3
+-
+-DATABASE = 'support_bot.db'
+-
+-async def create_table():
+-    conn = sqlite3.connect(DATABASE)
+-    cursor = conn.cursor()
+-    cursor.execute('''
+-    CREATE TABLE IF NOT EXISTS users (
+-        user_id INTEGER PRIMARY KEY,
+-        username TEXT,
+-        first_name TEXT,
+-        last_name TEXT,
+-        phone_number TEXT
+-    )
+-    ''')
+-    cursor.execute('''
+-    CREATE TABLE IF NOT EXISTS messages (
+-        message_id INTEGER PRIMARY KEY AUTOINCREMENT,
+-        user_id INTEGER,
+-        message TEXT,
+-        response TEXT,
+-        answered INTEGER DEFAULT 0,
+-        FOREIGN KEY(user_id) REFERENCES users(user_id)
+-    )
+-    ''')
+-    conn.commit()
+-    conn.close()
+-
+-async def add_user(user_id, phone_number, first_name, last_name):
+-    conn = sqlite3.connect(DATABASE)
+-    cursor = conn.cursor()
+-    cursor.execute('''
+-    INSERT OR IGNORE INTO users (user_id, phone_number, first_name, last_name) VALUES (?, ?, ?, ?)
+-    ''', (user_id, phone_number, first_name, last_name))
+-    conn.commit()
+-    conn.close()
+-
+-async def add_message(user_id, message):
+-    conn = sqlite3.connect(DATABASE)
+-    cursor = conn.cursor()
+-    cursor.execute('''
+-    INSERT INTO messages (user_id, message) VALUES (?, ?)
+-    ''', (user_id, message))
+-    conn.commit()
+-    conn.close()
+-
+-async def get_unanswered_messages():
+-    conn = sqlite3.connect(DATABASE)
+-    cursor = conn.cursor()
+-    cursor.execute('''
+-    SELECT message_id, user_id, message FROM messages WHERE answered = 0
+-    ''')
+-    rows = cursor.fetchall()
+-    conn.close()
+-    return rows
+-
+-async def respond_to_message(message_id, response):
+-    conn = sqlite3.connect(DATABASE)
+-    cursor = conn.cursor()
+-    cursor.execute('''
+-    UPDATE messages SET response = ?, answered = 1 WHERE message_id = ?
+-    ''', (response, message_id))
+-    conn.commit()
+-    conn.close()
+-
+-async def get_all_users():
+-    conn = sqlite3.connect(DATABASE)
+-    cursor = conn.cursor()
+-    cursor.execute('SELECT * FROM users')
+-    rows = cursor.fetchall()
+-    conn.close()
+-    return rows
+Index: run.py
+===================================================================
+diff --git a/run.py b/run.py
+deleted file mode 100644
+--- a/run.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,37 +0,0 @@
+-import asyncio
+-from app.bot import router
+-
+-from dotenv import load_dotenv
+-import os
+-from aiogram import Bot, Dispatcher
+-
+-from app.database import create_table
+-
+-
+-# Загрузка токена из .env файла
+-load_dotenv()
+-
+-API_TOKEN = os.getenv('API_TOKEN')
+-
+-# Инициализация бота и диспетчера
+-async def main():
+-    await create_table()  # Инициализация базы данных
+-    bot = Bot(token=API_TOKEN)
+-    dp = Dispatcher()
+-    dp.include_router(router)
+-    dp.startup.register(startup)
+-    dp.shutdown.register(shutdown)
+-    await dp.start_polling(bot)
+-
+-async def startup(dispatcher: Dispatcher):
+-
+-    await create_table()
+-    print('Starting up...')
+-async def shutdown(dispatcher: Dispatcher):
+-    print('Shutting down...')
+-
+-if __name__ == '__main__':
+-    try:
+-        asyncio.run(main())
+-    except KeyboardInterrupt:
+-        print('Exit')
+Index: app/bot.py
+===================================================================
+diff --git a/app/bot.py b/app/bot.py
+deleted file mode 100644
+--- a/app/bot.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,223 +0,0 @@
+-import datetime
+-import logging
+-from environs import Env
+-from dotenv import dotenv_values
+-from aiogram import Bot, F
+-from aiogram.filters import Command
+-from aiogram.types import Message, CallbackQuery
+-from aiogram.fsm.context import FSMContext
+-from aiogram.fsm.state import State, StatesGroup
+-from aiogram import Router
+-from app.database import (
+-    add_message, get_unanswered_messages, respond_to_message, get_chat_id, get_message,
+-    get_all_users, check_user_or_registr, get_history,
+-    get_black_list, add_user, get_blocked_user_message,
+-    add_to_black_list, add_to_black_list, unban_user, get_username
+-)
+-from app.keyboards import (
+-    login_keyboard, user_keyboard, admin_keyboard,
+-    create_admin_inline_keyboard, user_keyboard_after_login, banned_user, company_info,
+-    unban_user_keyboard
+-)
+-
+-config = dotenv_values()
+-
+-logging.basicConfig(level=logging.INFO)
+-env = Env()
+-env.read_env()
+-ADMIN_USER_ID = env.list("ADMINS")
+-black_list = []
+-
+-router = Router()
+-
+-class HelpMessage(StatesGroup):
+-    message_id = State()
+-    chat_id = State()
+-    message_send = State()
+-
+-class AnswerMessage(StatesGroup):
+-    waiting_for_reply = State()
+-
+-@router.message(Command("start"))
+-async def start(message: Message):
+-    await message.reply(f'👋Вас приветствует служба поддержки Транснефть. Пройдите регистрацию', reply_markup=login_keyboard)
+-
+-@router.message(F.contact)
+-async def login(message: Message):
+-    check = await check_user_or_registr(message.from_user.id)
+-    id = str(message.from_user.id)
+-    msg = await get_blocked_user_message(id)
+-    if check:
+-        if id in ADMIN_USER_ID:
+-            await message.answer('👋Рады вас видеть снова, <b>'+ message.from_user.full_name +'</b>', parse_mode='HTML', reply_markup=admin_keyboard)
+-        elif id in black_list:
+-            await message.reply(f'🏴Увы, вы в черном списке :(\n'
+-                                f'за следующее сообщение: {msg}' )
+-            return
+-        else:
+-            await message.answer('👋Рады вас видеть снова, <b>'+ message.from_user.full_name +'</b>', parse_mode='HTML', reply_markup=user_keyboard_after_login)
+-    else:
+-        if id in ADMIN_USER_ID:
+-            await add_user(message.from_user.id,message.from_user.username, message.contact.phone_number, message.from_user.full_name)
+-            await message.answer(f'✔️Вы успешно зарегестрировались, <b>{message.from_user.full_name}</b>!',
+-                                 parse_mode='HTML', reply_markup=admin_keyboard)
+-        else:
+-            await add_user(message.from_user.id, message.contact.phone_number, message.from_user.full_name)
+-            await message.answer(f'✔️Вы успешно зарегестрировались, <b>{message.from_user.full_name}</b>!',
+-                                 parse_mode='HTML', reply_markup=user_keyboard_after_login)
+-
+-@router.message(F.text == 'История запросов')
+-async def history(message: Message):
+-    user = message.from_user.id
+-    history = await get_history(user)
+-    if history:
+-        user_history = "\n".join([f'❓: <b>{messages[0]}</b>\n🔎: <i>{messages[1]}</i> \n \n' for messages in history])
+-        await message.answer(user_history, parse_mode='HTML')
+-    else:
+-        await message.answer('😭Вы еще не получили ответов на ваши обращения\n🦾уже разбираемся <b>:(</b>', parse_mode='HTML')
+-
+-@router.message(Command("help"))
+-async def help_command(message: Message, state: FSMContext):
+-    await state.set_state(HelpMessage.message_send)
+-    await message.reply('Задайте ваш вопрос, поддержка скоро свяжется с вами. 🛠️')
+-
+-@router.message(F.text == 'Помощь')
+-async def help_button(message: Message, state: FSMContext):
+-    user_id = message.from_user.id
+-    black_list = await get_black_list()
+-    if user_id in black_list:
+-        await message.answer('Вы забанены', reply_markup=banned_user)
+-    else:
+-        await help_command(message, state)
+-
+-@router.message(F.text == 'Список пользователей')
+-async def list_users_button(message: Message):
+-    if str(message.from_user.id) in ADMIN_USER_ID:
+-        await list_users(message)
+-    else:
+-        await message.reply('❌❌❌У вас нет доступа к этой команде.❌❌❌')
+-
+-@router.message(F.text == 'Список бан-пользователей')
+-async def black_list_users_button(message: Message):
+-    black_list = await get_black_list()
+-    if not black_list:
+-        await message.answer(f'Забаненных пользователей нет')
+-    else:
+-        for i in black_list:
+-            msg = str(await get_blocked_user_message(str(i)))
+-            keyboard = unban_user_keyboard(str(i))
+-            await message.answer(f'🏴Забаненный пользователь: <b>{str(i)}</b> из-за сообщения - <b>{msg}</b>', parse_mode='HTML', reply_markup=keyboard)
+-
+-@router.message(F.text == 'Неотвеченные сообщения')
+-async def list_unanswered_button(message: Message, state: FSMContext):
+-    if str(message.from_user.id) in ADMIN_USER_ID:
+-        await list_unanswered(message, state)
+-    else:
+-        await message.reply('❌❌❌У вас нет доступа к этой команде.❌❌❌')
+-
+-@router.message(Command("Список пользователей"))
+-async def list_users(message: Message):
+-    if str(message.from_user.id) not in ADMIN_USER_ID:
+-        await message.answer(f'Вы не админ')
+-        return
+-    users = await get_all_users()
+-    user_list = "\n".join([f'{user[1]}: {user[2]} {user[3]}' for user in users])
+-    await message.reply(f'Зарегистрированные пользователи:\n{user_list}')
+-
+-@router.message(Command("Неотвеченные сообщения"))
+-async def list_unanswered(message: Message, state: FSMContext):
+-    if str(message.from_user.id) not in ADMIN_USER_ID:
+-        return
+-    unanswered = await get_unanswered_messages()
+-    if not unanswered:
+-        await message.reply('Нет необработанных сообщений.')
+-        return
+-    for msg in unanswered:
+-        keyboard = create_admin_inline_keyboard(msg[0])
+-        first_name = await get_username(str(msg[1]))
+-        await message.reply(f'Сообщение от пользователя <a href="tg://user?id={msg[1]}">{first_name[0]}</a>:\n"{msg[2]}"', reply_markup=keyboard, parse_mode='HTML')
+-
+-@router.callback_query(F.data.startswith('reply_'))
+-async def handle_reply_callback(callback_query: CallbackQuery, state: FSMContext):
+-    if str(callback_query.from_user.id) not in ADMIN_USER_ID:
+-        await callback_query.answer('У вас нет доступа к этой функции.', show_alert=True)
+-        return
+-    message_id = callback_query.data.split('_')[1]
+-    await state.update_data(message_id=message_id)
+-    await state.set_state(AnswerMessage.waiting_for_reply)
+-    await callback_query.message.reply(f'Введите ответ на сообщение {message_id}.')
+-    await callback_query.answer()
+-
+-@router.callback_query(F.data.startswith('unban_'))
+-async def handle_unban_callback(callback_query: CallbackQuery, bot: Bot):
+-    if str(callback_query.from_user.id) not in ADMIN_USER_ID:
+-        await callback_query.answer('У вас нет доступа к этой функции.', show_alert=True)
+-        return
+-    user_id = callback_query.data.split('_')[1]
+-    await unban_user(user_id)
+-    await callback_query.answer(f'Пользователь {user_id} разбанен.')
+-    await bot.send_message(str(user_id), 'Вы были разбанены🎉', reply_markup=user_keyboard_after_login)
+-
+-@router.callback_query(F.data.startswith('ban_'))
+-async def handle_ban_callback(callback_query: CallbackQuery, bot: Bot):
+-    if str(callback_query.from_user.id) not in ADMIN_USER_ID:
+-        await callback_query.answer('У вас нет доступа к этой функции.', show_alert=True)
+-        return
+-    message_id = callback_query.data.split('_')[1]
+-    user = await get_chat_id(message_id, 0)
+-    msg = await get_message(message_id, 0)
+-    await add_to_black_list(user[0], msg[0])
+-    await callback_query.answer(f'🏴Пользователь {user[0]} добавлен в черный список🏴')
+-    await bot.send_message(user[0], f'🏴Вы были забанены за сообщение <b>{msg[0]}</b>', parse_mode='HTML', reply_markup=banned_user)
+-
+-
+-
+-@router.message(F.text == 'О компании')
+-async def info(message: Message):
+-    await message.reply('Тут большая история', reply_markup=company_info)
+-
+-@router.message(F.text == 'Новости "Транснефти"')
+-async def investors(message: Message):
+-    await message.reply('Новости')
+-
+-@router.message(F.text == 'Клиентам')
+-async def clients(message: Message, bot: Bot):
+-    await message.reply(f'Контактная информация\n'
+-                        f'Отдел делопроизводства\n'
+-                        f'Телефоны: +7 (3953) 300-701, +7 (3953) 300-709\n'
+-                        f'Email: vsmn@vsmn.transneft.ru')
+-    await bot.send_location(message.from_user.id, 56.313259, 101.739587)
+-
+-@router.message(F.text)
+-async def handle_message(message: Message, state: FSMContext, bot: Bot):
+-    await bot.send_chat_action(message.from_user.id, action="typing")
+-    data = await state.get_data()
+-    current_state = await state.get_state()
+-    user_id = message.from_user.id
+-    black_list = await get_black_list()
+-    if str(user_id) in black_list:
+-        await message.reply('Вы заблокированы и не можете отправлять сообщения.')
+-        return
+-    else:
+-        if current_state == AnswerMessage.waiting_for_reply.state:
+-            if str(user_id) in map(str, ADMIN_USER_ID):
+-                db_message_id = data['message_id']
+-                await respond_to_message(db_message_id, message.text)
+-                await message.reply(f'✅Ответ на сообщение {db_message_id} отправлен.')
+-                user_chat_id = await get_chat_id(db_message_id, 1)
+-                original_message = await get_message(db_message_id, 1)
+-                await bot.send_message(user_chat_id[0],
+-                                       f'❓ Ваше обращение:\n <b>{original_message[0]}</b>\n\n'
+-                                       f'🗣 Ответ от поддержки:\n <b><i>{message.text}</i></b>',
+-                                       parse_mode='HTML')
+-                await state.clear()
+-        else:
+-            if str(user_id) not in map(str, ADMIN_USER_ID):
+-                if current_state == HelpMessage.message_send.state:
+-                    user_message = message.text
+-                    db_message_id = await add_message(user_id, user_message)
+-                    await state.update_data(message_id=db_message_id, chat_id=message.chat.id, message_send=True)
+-                    await message.reply(f'✅Ваше сообщение: "{user_message}" получено. Ожидайте ответа.')
+-                    await state.clear()
+-                else:
+-                    await message.answer('Сначала нажмите кнопку Помощь❗️❗️❗️')
+\ No newline at end of file
+Index: app/generator.py
+===================================================================
+diff --git a/app/generator.py b/app/generator.py
+deleted file mode 100644
+--- a/app/generator.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,17 +0,0 @@
+-#API = 'NDcxZmQ3YjMtMGQ2Mi00MTFmLWEyMjEtZmQ4NDA5N2FmNzBhOjkyNDU1Y2FhLTQzMzAtNDI2Ny1iMDYwLWY5NTg3OTM0N2MzOA=='
+-
+-import requests
+-
+-url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
+-
+-payload='scope=GIGACHAT_API_PERS'
+-headers = {
+-  'Content-Type': 'application/x-www-form-urlencoded',
+-  'Accept': 'application/json',
+-  'RqUID': 'dc03d41c-c8f0-4b61-b0b0-848535de1ea7',
+-  'Authorization': 'Basic <NDcxZmQ3YjMtMGQ2Mi00MTFmLWEyMjEtZmQ4NDA5N2FmNzBhOjkyNDU1Y2FhLTQzMzAtNDI2Ny1iMDYwLWY5NTg3OTM0N2MzOA==>'
+-}
+-
+-response = requests.request("POST", url, headers=headers, data=payload)
+-
+-print(response.text)
+\ No newline at end of file
+Index: bot.py
+===================================================================
+diff --git a/bot.py b/bot.py
+deleted file mode 100644
+--- a/bot.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,115 +0,0 @@
+-import logging
+-from aiogram import Bot, Dispatcher, types, F
+-from aiogram.filters import Command
+-from aiogram.types import Message, Contact, CallbackQuery
+-from aiogram.fsm.storage.memory import MemoryStorage
+-from aiogram import Router
+-from database import create_table, add_user, add_message, get_unanswered_messages, respond_to_message, get_all_users
+-from keyboards import user_keyboard, admin_keyboard, create_admin_inline_keyboard
+-
+-API_TOKEN = '7071804207:AAEjKYbRNlAZf23aMkz67qBr_cy1wkaNoQM'
+-ADMIN_USER_ID = [427368318]  # Список ID админов
+-
+-logging.basicConfig(level=logging.INFO)
+-
+-# Создание бота и диспетчера
+-bot = Bot(token=API_TOKEN)
+-dp = Dispatcher(storage=MemoryStorage())
+-router = Router()
+-
+-@router.message(Command("start"))
+-async def start(message: Message):
+-    user = message.from_user
+-    if user.id in ADMIN_USER_ID:
+-        keyboard = admin_keyboard
+-    else:
+-        keyboard = user_keyboard
+-    await message.reply(f'Привет! Вас приветствует служба поддержки Транснефть.', reply_markup=keyboard)
+-
+-@router.message(Command("help"))
+-async def help_command(message: Message):
+-    await message.reply('Задайте ваш вопрос, и наша поддержка скоро свяжется с вами.')
+-
+-@router.message(F.text == 'Помощь')
+-async def help_button(message: Message):
+-    await help_command(message)
+-
+-@router.message(F.text == 'Список пользователей')
+-async def list_users_button(message: Message):
+-    if message.from_user.id in ADMIN_USER_ID:
+-        await list_users(message)
+-    else:
+-        await message.reply('У вас нет доступа к этой команде.')
+-
+-@router.message(F.text == 'Неотвеченные сообщения')
+-async def list_unanswered_button(message: Message):
+-    if message.from_user.id in ADMIN_USER_ID:
+-        await list_unanswered(message)
+-    else:
+-        await message.reply('У вас нет доступа к этой команде.')
+-
+-@router.message(Command("Список пользователей"))
+-async def list_users(message: Message):
+-    if message.from_user.id not in ADMIN_USER_ID:
+-        return
+-    users = await get_all_users()
+-    user_list = "\n".join([f'{user[1]}: {user[2]} {user[3]}' for user in users])
+-    await message.reply(f'Зарегистрированные пользователи:\n{user_list}')
+-
+-@router.message(Command("Неотвеченные сообщения"))
+-async def list_unanswered(message: Message):
+-    if message.from_user.id not in ADMIN_USER_ID:
+-        return
+-    unanswered = await get_unanswered_messages()
+-    if not unanswered:
+-        await message.reply('Нет необработанных сообщений.')
+-        return
+-    for msg in unanswered:
+-        keyboard = create_admin_inline_keyboard(msg[0])
+-        await message.reply(f'Сообщение от пользователя {msg[1]}:\n"{msg[2]}"', reply_markup=keyboard)
+-
+-@router.callback_query(F.data.startswith('reply_'))
+-async def handle_reply_callback(callback_query: CallbackQuery):
+-    if callback_query.from_user.id not in ADMIN_USER_ID:
+-        await callback_query.answer('У вас нет доступа к этой функции.', show_alert=True)
+-        return
+-    message_id = callback_query.data.split('_')[1]
+-    await callback_query.message.reply(f'Введите ответ на сообщение {message_id} в формате:\n/reply {message_id} <ответ>')
+-    await callback_query.answer()
+-
+-@router.message(Command("reply"))
+-async def reply_to_user(message: Message):
+-    if message.from_user.id not in ADMIN_USER_ID:
+-        return
+-    try:
+-        _, message_id, response = message.text.split(' ', 2)
+-        await respond_to_message(message_id, response)
+-        await message.reply(f'Ответ на сообщение {message_id} отправлен.')
+-    except ValueError:
+-        await message.reply('Использование: /reply <id> <ответ>')
+-
+-@router.message(F.contact)
+-async def handle_contact(message: Message):
+-    contact: Contact = message.contact
+-    await add_user(contact.user_id, contact.phone_number, contact.first_name, contact.last_name)
+-    print(contact.user_id)
+-    await message.reply('Вы успешно зарегистрированы!')
+-
+-@router.message(F.text)
+-async def handle_message(message: Message):
+-    user_message = message.text
+-    user = message.from_user
+-    await add_message(user.id, user_message)
+-    await message.reply(f'Ваше сообщение: "{user_message}" получено.')
+-
+-async def on_startup():
+-    await create_table()
+-
+-async def main():
+-    dp.include_router(router)
+-    await on_startup()
+-    await dp.start_polling(bot)
+-
+-if __name__ == '__main__':
+-    import asyncio
+-    asyncio.run(main())
+Index: generator.py
+===================================================================
+diff --git a/generator.py b/generator.py
+deleted file mode 100644
+--- a/generator.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,17 +0,0 @@
+-#API = 'NDcxZmQ3YjMtMGQ2Mi00MTFmLWEyMjEtZmQ4NDA5N2FmNzBhOjkyNDU1Y2FhLTQzMzAtNDI2Ny1iMDYwLWY5NTg3OTM0N2MzOA=='
+-
+-import requests
+-
+-url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
+-
+-payload='scope=GIGACHAT_API_PERS'
+-headers = {
+-  'Content-Type': 'application/x-www-form-urlencoded',
+-  'Accept': 'application/json',
+-  'RqUID': 'dc03d41c-c8f0-4b61-b0b0-848535de1ea7',
+-  'Authorization': 'Basic <NDcxZmQ3YjMtMGQ2Mi00MTFmLWEyMjEtZmQ4NDA5N2FmNzBhOjkyNDU1Y2FhLTQzMzAtNDI2Ny1iMDYwLWY5NTg3OTM0N2MzOA==>'
+-}
+-
+-response = requests.request("POST", url, headers=headers, data=payload)
+-
+-print(response.text)
+\ No newline at end of file
+Index: handlers.py
+===================================================================
+diff --git a/handlers.py b/handlers.py
+deleted file mode 100644
+--- a/handlers.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,132 +0,0 @@
+-from aiogram.types import Message, CallbackQuery
+-from aiogram import Router, F, Bot
+-from aiogram.fsm.context import FSMContext
+-from aiogram.fsm.state import State, StatesGroup
+-from aiogram.enums import ChatAction
+-import app.keyboards as kb
+-from aiogram.filters import CommandStart
+-import app.builder as builder
+-from app.database.request import set_user, get_info
+-
+-router = Router()
+-
+-
+-
+-class User(StatesGroup):
+-    name = State()
+-    number = State()
+-    contact = State()
+-    user_id = State()
+-    chat_id = State()
+-
+-
+-
+-@router.message(CommandStart())
+-async def cmd_start(message: Message, state: FSMContext):
+-    await state.set_state(User.name)  # Установка состояния User.name
+-    await message.answer(f'Привет! Для регистрации отправьте свой контакт, кнопка ниже', reply_markup=kb.login)
+-
+-@router.message(F.contact)
+-async def handle_contact(message: Message, state: FSMContext):
+-    # Выводим данные контакта в терминал
+-    await state.update_data(name = message.contact.first_name)
+-    await state.update_data(number = message.contact.phone_number)
+-    await state.update_data(user_id = message.from_user.id)
+-    await state.update_data(chat_id = message.chat.id)
+-    data = await state.get_data()
+-    print('Новый контакт:')
+-    print('Имя: ' + data['name'])
+-    print('Номер телефона: ' + data['number'])
+-    print('ID пользователя: ' + str(data['user_id']))
+-    print('ID чата:' + str(data['chat_id']))
+-    data = await state.get_data()
+-    await message.answer(f'Рады видеть тебя, {data['name']}!', reply_markup=kb.main)
+-    if message.contact.user_id == message.from_user.id:
+-        await set_user(message.from_user.id, message.contact.first_name, message.contact.phone_number)
+-        await state.clear()
+-
+-
+-
+-@router.message(F.text == 'Войти в аккаунт' )
+-async def login(message: Message, state: FSMContext):
+-    if User.name == None:
+-        await message.answer('Авторизация...' + User.name)
+-        #   в бд поиск аккаунта
+-
+-
+-# Обработка коллбэков для InlineKeyboardButton
+-@router.callback_query(F.data == 'callback_info')
+-async def info_callback(call: CallbackQuery):
+-    await call.message.answer('Тут большая история')
+-
+-
+-# Обработка текстовых сообщений для ReplyKeyboardButton
+-@router.message(F.text == 'О компании')
+-async def info(message: Message):
+-    await message.reply('Тут большая история', reply_markup=kb.settings)
+-
+-
+-@router.message(F.text == 'Задать вопрос')
+-async def development(message: Message):
+-    await message.answer('запрос', reply_markup=kb.inner_main)
+-
+-
+-@router.message(F.text == 'Инвесторам и акционерам')
+-async def investors(message: Message):
+-    await message.reply(str(await get_info('Информация для инвесторов')))
+-
+-
+-@router.message(F.text == 'Клиентам')
+-async def clients(message: Message):
+-    await message.reply(str(await get_info('Информация для клиентов')))
+-
+-
+-@router.message(F.text == 'Назад')
+-async def cmd_start(message: Message):
+-    await message.answer('И снова здравствуйте!', reply_markup=kb.main)
+-
+-
+-@router.message(F.text == 'Написать коллеге')
+-async def send_to_college(message: Message, bot: Bot):
+-    await message.answer("Выберите получателя:", reply_markup= await builder.choose_college())
+-
+-@router.message(F.text == 'Тех. поддержка')
+-async def chat(message: Message, bot: Bot):
+-    help_user_id = message.from_user.id
+-    msg = message.answer(message.chat.id, 'Задайте вопрос', reply_markup=kb.message_confirm)
+-
+-
+-
+-
+-
+-
+-
+-
+-@router.message(F.text == 'Развлечения')
+-async def ai_chat(message: Message):
+-    await message.reply('Интеграция gamee')
+-@router.message(F.user_shared)
+-async def on_user_shared(message: Message):
+-    print(
+-        f"Request {message.user_shared.request_id}. "
+-        f"User ID: {message.user_shared.user_id}"
+-    )
+-    await message.bot.send_chat_action(chat_id=message.from_user.id, action=ChatAction.TYPING)
+-    await message.bot.send_message(chat_id=message.user_shared.user_id, text='Тут сообщение от пользователя')
+-
+-@router.message(F.text)
+-async def send_message(message: Message):
+-    user_name = str(message.from_user.full_name)
+-    user_url = str(message.from_user.url)
+-    await message.answer(f'Вам пришло сообщение от <a href="{user_url}">{user_name}</a>', parse_mode='HTML')
+-
+-
+-@router.message(F.data.startswith('send_to_'))
+-async def inp_message(callback: CallbackQuery):
+-    await callback.message.answer('Ваша корзина пуста.')
+-
+-@router.message(F.text == 'Отправить')
+-async def on_user_send(message: Message):
+-    message.answer('Сообщение  отправлено')
+-
+-
+Index: app/database/models.py
+===================================================================
+diff --git a/app/database/models.py b/app/database/models.py
+deleted file mode 100644
+--- a/app/database/models.py	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
++++ /dev/null	(revision d68fb11af8c8dc5a27ca6b6fedb272a209f5da3b)
+@@ -1,34 +0,0 @@
+-from sqlalchemy import ForeignKey, String, BigInteger, Boolean
+-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
+-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
+-
+-                    ###########          from config import DB_URL
+-
+-engine = create_async_engine(url='sqlite+aiosqlite:///db.sqlite3',
+-                             echo=True)
+-
+-async_session = async_sessionmaker(engine)
+-
+-
+-class Base(AsyncAttrs, DeclarativeBase):
+-    pass
+-
+-
+-class User(Base):
+-    __tablename__ = 'users'
+-
+-    tg_id = mapped_column(BigInteger, primary_key=True)
+-    nickname = mapped_column(String)
+-    phone_number = mapped_column(BigInteger)
+-    is_admin = mapped_column(Boolean, default=False)
+-
+-
+-class Info(Base):
+-    __tablename__ = 'data'
+-
+-    id = mapped_column(String, primary_key=True)
+-    txt_info = mapped_column(String)
+-
+-async def async_main():
+-    async with engine.begin() as conn:
+-        await conn.run_sync(Base.metadata.create_all)
+\ No newline at end of file

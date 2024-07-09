@@ -1,0 +1,452 @@
+Index: app/builder.py
+===================================================================
+diff --git a/app/builder.py b/app/builder.py
+deleted file mode 100644
+--- a/app/builder.py	
++++ /dev/null	
+@@ -1,17 +0,0 @@
+-from aiogram.types import KeyboardButton, InlineKeyboardButton
+-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+-#from app.database.request import get_employee
+-
+-
+-data = ('Коллега 1','Коллега 2','Коллега 3')
+-async def choose_college():
+-
+-    keyboard = InlineKeyboardBuilder()
+-    for i in data:
+-        keyboard.add(InlineKeyboardButton(text= str(i), url = f'tg://user?id={427368318}'))
+-    return keyboard.adjust(2).as_markup()
+-
+-
+-
+-
+-
+Index: database/request.py
+===================================================================
+diff --git a/database/request.py b/database/request.py
+deleted file mode 100644
+--- a/database/request.py	
++++ /dev/null	
+@@ -1,22 +0,0 @@
+-from app.database.models import async_session
+-from app.database.models import User, Info
+-from sqlalchemy import select, update, delete, desc
+-
+-list = ['0', '1', '2']
+-
+-async def set_user(tg_id, nickname,phone_number):
+-    async with async_session() as session:
+-        user = await session.scalar(select(User).where(User.tg_id == tg_id,
+-                                                       User.nickname == nickname,
+-                                                       User.phone_number == phone_number))
+-
+-        if not user:
+-            session.add(User(tg_id=tg_id, nickname = nickname , phone_number = phone_number))
+-            await session.commit()
+-
+-
+-async def get_info(id):
+-    async with async_session() as session:
+-       result = await session.execute(select(Info.txt_info).where(Info.id == id))
+-       return result.scalar()
+-
+Index: app/generator.py
+===================================================================
+diff --git a/app/generator.py b/app/generator.py
+deleted file mode 100644
+--- a/app/generator.py	
++++ /dev/null	
+@@ -1,17 +0,0 @@
+-#API = 'NDcxZmQ3YjMtMGQ2Mi00MTFmLWEyMjEtZmQ4NDA5N2FmNzBhOjkyNDU1Y2FhLTQzMzAtNDI2Ny1iMDYwLWY5NTg3OTM0N2MzOA=='
+-
+-import requests
+-
+-url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
+-
+-payload='scope=GIGACHAT_API_PERS'
+-headers = {
+-  'Content-Type': 'application/x-www-form-urlencoded',
+-  'Accept': 'application/json',
+-  'RqUID': 'dc03d41c-c8f0-4b61-b0b0-848535de1ea7',
+-  'Authorization': 'Basic <NDcxZmQ3YjMtMGQ2Mi00MTFmLWEyMjEtZmQ4NDA5N2FmNzBhOjkyNDU1Y2FhLTQzMzAtNDI2Ny1iMDYwLWY5NTg3OTM0N2MzOA==>'
+-}
+-
+-response = requests.request("POST", url, headers=headers, data=payload)
+-
+-print(response.text)
+\ No newline at end of file
+Index: app/handlers.py
+===================================================================
+diff --git a/app/handlers.py b/app/handlers.py
+deleted file mode 100644
+--- a/app/handlers.py	
++++ /dev/null	
+@@ -1,132 +0,0 @@
+-from aiogram.types import Message, CallbackQuery
+-from aiogram import Router, F, Bot
+-from aiogram.fsm.context import FSMContext
+-from aiogram.fsm.state import State, StatesGroup
+-from aiogram.enums import ChatAction
+-import app.keyboards as kb
+-from aiogram.filters import CommandStart
+-import app.builder as builder
+-
+-
+-router = Router()
+-
+-
+-
+-class User(StatesGroup):
+-    name = State()
+-    number = State()
+-    contact = State()
+-    user_id = State()
+-    chat_id = State()
+-
+-
+-
+-@router.message(CommandStart())
+-async def cmd_start(message: Message, state: FSMContext):
+-    await state.set_state(User.name)  # Установка состояния User.name
+-    await message.answer(f'Привет! Для регистрации отправьте свой контакт, кнопка ниже', reply_markup=kb.login)
+-
+-@router.message(F.contact)
+-async def handle_contact(message: Message, state: FSMContext):
+-    # Выводим данные контакта в терминал
+-    await state.update_data(name = message.contact.first_name)
+-    await state.update_data(number = message.contact.phone_number)
+-    await state.update_data(user_id = message.from_user.id)
+-    await state.update_data(chat_id = message.chat.id)
+-    data = await state.get_data()
+-    print('Новый контакт:')
+-    print('Имя: ' + data['name'])
+-    print('Номер телефона: ' + data['number'])
+-    print('ID пользователя: ' + str(data['user_id']))
+-    print('ID чата:' + str(data['chat_id']))
+-    data = await state.get_data()
+-    await message.answer(f'Рады видеть тебя, {data['name']}!', reply_markup=kb.main)
+-    if message.contact.user_id == message.from_user.id:
+-        await set_user(message.from_user.id, message.contact.first_name, message.contact.phone_number)
+-        await state.clear()
+-
+-
+-
+-@router.message(F.text == 'Войти в аккаунт' )
+-async def login(message: Message, state: FSMContext):
+-    if User.name == None:
+-        await message.answer('Авторизация...' + User.name)
+-        #   в бд поиск аккаунта
+-
+-
+-# Обработка коллбэков для InlineKeyboardButton
+-@router.callback_query(F.data == 'callback_info')
+-async def info_callback(call: CallbackQuery):
+-    await call.message.answer('Тут большая история')
+-
+-
+-# Обработка текстовых сообщений для ReplyKeyboardButton
+-@router.message(F.text == 'О компании')
+-async def info(message: Message):
+-    await message.reply('Тут большая история', reply_markup=kb.settings)
+-
+-
+-@router.message(F.text == 'Задать вопрос')
+-async def development(message: Message):
+-    await message.answer('запрос', reply_markup=kb.inner_main)
+-
+-
+-@router.message(F.text == 'Инвесторам и акционерам')
+-async def investors(message: Message):
+-    await message.reply(str(await get_info('Информация для инвесторов')))
+-
+-
+-@router.message(F.text == 'Клиентам')
+-async def clients(message: Message):
+-    await message.reply(str(await get_info('Информация для клиентов')))
+-
+-
+-@router.message(F.text == 'Назад')
+-async def cmd_start(message: Message):
+-    await message.answer('И снова здравствуйте!', reply_markup=kb.main)
+-
+-
+-@router.message(F.text == 'Написать коллеге')
+-async def send_to_college(message: Message, bot: Bot):
+-    await message.answer("Выберите получателя:", reply_markup= await builder.choose_college())
+-
+-@router.message(F.text == 'Тех. поддержка')
+-async def chat(message: Message, bot: Bot):
+-    help_user_id = message.from_user.id
+-    msg = message.answer(message.chat.id, 'Задайте вопрос', reply_markup=kb.message_confirm)
+-
+-
+-
+-
+-
+-
+-
+-
+-@router.message(F.text == 'Развлечения')
+-async def ai_chat(message: Message):
+-    await message.reply('Интеграция gamee')
+-@router.message(F.user_shared)
+-async def on_user_shared(message: Message):
+-    print(
+-        f"Request {message.user_shared.request_id}. "
+-        f"User ID: {message.user_shared.user_id}"
+-    )
+-    await message.bot.send_chat_action(chat_id=message.from_user.id, action=ChatAction.TYPING)
+-    await message.bot.send_message(chat_id=message.user_shared.user_id, text='Тут сообщение от пользователя')
+-
+-@router.message(F.text)
+-async def send_message(message: Message):
+-    user_name = str(message.from_user.full_name)
+-    user_url = str(message.from_user.url)
+-    await message.answer(f'Вам пришло сообщение от <a href="{user_url}">{user_name}</a>', parse_mode='HTML')
+-
+-
+-@router.message(F.data.startswith('send_to_'))
+-async def inp_message(callback: CallbackQuery):
+-    await callback.message.answer('Ваша корзина пуста.')
+-
+-@router.message(F.text == 'Отправить')
+-async def on_user_send(message: Message):
+-    message.answer('Сообщение  отправлено')
+-
+-
+Index: builder.py
+===================================================================
+diff --git a/builder.py b/builder.py
+deleted file mode 100644
+--- a/builder.py	
++++ /dev/null	
+@@ -1,18 +0,0 @@
+-from aiogram.types import KeyboardButton, InlineKeyboardButton
+-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+-#from app.database.request import get_employee
+-from app.database.models import User
+-from app.database.request import list
+-
+-data = ('Коллега 1','Коллега 2','Коллега 3')
+-async def choose_college():
+-
+-    keyboard = InlineKeyboardBuilder()
+-    for i in data:
+-        keyboard.add(InlineKeyboardButton(text= str(i), url = f'tg://user?id={427368318}'))
+-    return keyboard.adjust(2).as_markup()
+-
+-
+-
+-
+-
+Index: database/models.py
+===================================================================
+diff --git a/database/models.py b/database/models.py
+deleted file mode 100644
+--- a/database/models.py	
++++ /dev/null	
+@@ -1,34 +0,0 @@
+-from sqlalchemy import ForeignKey, String, BigInteger, Boolean
+-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
+-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
+-
+-                    ###########          from config import DB_URL
+-
+-engine = create_async_engine(url='sqlite+aiosqlite:///db.sqlite3',
+-                             echo=True)
+-
+-async_session = async_sessionmaker(engine)
+-
+-
+-class Base(AsyncAttrs, DeclarativeBase):
+-    pass
+-
+-
+-class User(Base):
+-    __tablename__ = 'users'
+-
+-    tg_id = mapped_column(BigInteger, primary_key=True)
+-    nickname = mapped_column(String)
+-    phone_number = mapped_column(BigInteger)
+-    is_admin = mapped_column(Boolean, default=False)
+-
+-
+-class Info(Base):
+-    __tablename__ = 'data'
+-
+-    id = mapped_column(String, primary_key=True)
+-    txt_info = mapped_column(String)
+-
+-async def async_main():
+-    async with engine.begin() as conn:
+-        await conn.run_sync(Base.metadata.create_all)
+\ No newline at end of file
+Index: generator.py
+===================================================================
+diff --git a/generator.py b/generator.py
+deleted file mode 100644
+--- a/generator.py	
++++ /dev/null	
+@@ -1,17 +0,0 @@
+-#API = 'NDcxZmQ3YjMtMGQ2Mi00MTFmLWEyMjEtZmQ4NDA5N2FmNzBhOjkyNDU1Y2FhLTQzMzAtNDI2Ny1iMDYwLWY5NTg3OTM0N2MzOA=='
+-
+-import requests
+-
+-url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
+-
+-payload='scope=GIGACHAT_API_PERS'
+-headers = {
+-  'Content-Type': 'application/x-www-form-urlencoded',
+-  'Accept': 'application/json',
+-  'RqUID': 'dc03d41c-c8f0-4b61-b0b0-848535de1ea7',
+-  'Authorization': 'Basic <NDcxZmQ3YjMtMGQ2Mi00MTFmLWEyMjEtZmQ4NDA5N2FmNzBhOjkyNDU1Y2FhLTQzMzAtNDI2Ny1iMDYwLWY5NTg3OTM0N2MzOA==>'
+-}
+-
+-response = requests.request("POST", url, headers=headers, data=payload)
+-
+-print(response.text)
+\ No newline at end of file
+Index: handlers.py
+===================================================================
+diff --git a/handlers.py b/handlers.py
+deleted file mode 100644
+--- a/handlers.py	
++++ /dev/null	
+@@ -1,132 +0,0 @@
+-from aiogram.types import Message, CallbackQuery
+-from aiogram import Router, F, Bot
+-from aiogram.fsm.context import FSMContext
+-from aiogram.fsm.state import State, StatesGroup
+-from aiogram.enums import ChatAction
+-import app.keyboards as kb
+-from aiogram.filters import CommandStart
+-import app.builder as builder
+-from app.database.request import set_user, get_info
+-
+-router = Router()
+-
+-
+-
+-class User(StatesGroup):
+-    name = State()
+-    number = State()
+-    contact = State()
+-    user_id = State()
+-    chat_id = State()
+-
+-
+-
+-@router.message(CommandStart())
+-async def cmd_start(message: Message, state: FSMContext):
+-    await state.set_state(User.name)  # Установка состояния User.name
+-    await message.answer(f'Привет! Для регистрации отправьте свой контакт, кнопка ниже', reply_markup=kb.login)
+-
+-@router.message(F.contact)
+-async def handle_contact(message: Message, state: FSMContext):
+-    # Выводим данные контакта в терминал
+-    await state.update_data(name = message.contact.first_name)
+-    await state.update_data(number = message.contact.phone_number)
+-    await state.update_data(user_id = message.from_user.id)
+-    await state.update_data(chat_id = message.chat.id)
+-    data = await state.get_data()
+-    print('Новый контакт:')
+-    print('Имя: ' + data['name'])
+-    print('Номер телефона: ' + data['number'])
+-    print('ID пользователя: ' + str(data['user_id']))
+-    print('ID чата:' + str(data['chat_id']))
+-    data = await state.get_data()
+-    await message.answer(f'Рады видеть тебя, {data['name']}!', reply_markup=kb.main)
+-    if message.contact.user_id == message.from_user.id:
+-        await set_user(message.from_user.id, message.contact.first_name, message.contact.phone_number)
+-        await state.clear()
+-
+-
+-
+-@router.message(F.text == 'Войти в аккаунт' )
+-async def login(message: Message, state: FSMContext):
+-    if User.name == None:
+-        await message.answer('Авторизация...' + User.name)
+-        #   в бд поиск аккаунта
+-
+-
+-# Обработка коллбэков для InlineKeyboardButton
+-@router.callback_query(F.data == 'callback_info')
+-async def info_callback(call: CallbackQuery):
+-    await call.message.answer('Тут большая история')
+-
+-
+-# Обработка текстовых сообщений для ReplyKeyboardButton
+-@router.message(F.text == 'О компании')
+-async def info(message: Message):
+-    await message.reply('Тут большая история', reply_markup=kb.settings)
+-
+-
+-@router.message(F.text == 'Задать вопрос')
+-async def development(message: Message):
+-    await message.answer('запрос', reply_markup=kb.inner_main)
+-
+-
+-@router.message(F.text == 'Инвесторам и акционерам')
+-async def investors(message: Message):
+-    await message.reply(str(await get_info('Информация для инвесторов')))
+-
+-
+-@router.message(F.text == 'Клиентам')
+-async def clients(message: Message):
+-    await message.reply(str(await get_info('Информация для клиентов')))
+-
+-
+-@router.message(F.text == 'Назад')
+-async def cmd_start(message: Message):
+-    await message.answer('И снова здравствуйте!', reply_markup=kb.main)
+-
+-
+-@router.message(F.text == 'Написать коллеге')
+-async def send_to_college(message: Message, bot: Bot):
+-    await message.answer("Выберите получателя:", reply_markup= await builder.choose_college())
+-
+-@router.message(F.text == 'Тех. поддержка')
+-async def chat(message: Message, bot: Bot):
+-    help_user_id = message.from_user.id
+-    msg = message.answer(message.chat.id, 'Задайте вопрос', reply_markup=kb.message_confirm)
+-
+-
+-
+-
+-
+-
+-
+-
+-@router.message(F.text == 'Развлечения')
+-async def ai_chat(message: Message):
+-    await message.reply('Интеграция gamee')
+-@router.message(F.user_shared)
+-async def on_user_shared(message: Message):
+-    print(
+-        f"Request {message.user_shared.request_id}. "
+-        f"User ID: {message.user_shared.user_id}"
+-    )
+-    await message.bot.send_chat_action(chat_id=message.from_user.id, action=ChatAction.TYPING)
+-    await message.bot.send_message(chat_id=message.user_shared.user_id, text='Тут сообщение от пользователя')
+-
+-@router.message(F.text)
+-async def send_message(message: Message):
+-    user_name = str(message.from_user.full_name)
+-    user_url = str(message.from_user.url)
+-    await message.answer(f'Вам пришло сообщение от <a href="{user_url}">{user_name}</a>', parse_mode='HTML')
+-
+-
+-@router.message(F.data.startswith('send_to_'))
+-async def inp_message(callback: CallbackQuery):
+-    await callback.message.answer('Ваша корзина пуста.')
+-
+-@router.message(F.text == 'Отправить')
+-async def on_user_send(message: Message):
+-    message.answer('Сообщение  отправлено')
+-
+-
+diff --git a/app/admin.py b/app/admin.py
+deleted file mode 100644
+diff --git a/admin.py b/admin.py
+deleted file mode 100644
