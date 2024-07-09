@@ -5,7 +5,7 @@ from aiogram.types import BotCommand
 from aiogram.fsm.storage.memory import MemoryStorage
 from config import env
 from handlers import common, user, admin
-
+from app.database import create_table
 logging.basicConfig(level=logging.INFO)
 
 
@@ -18,6 +18,7 @@ async def set_commands(bot: Bot):
 
 
 async def main():
+    await create_table()
     bot_token = env.str("BOT_TOKEN")
     bot = Bot(token=bot_token)
     storage = MemoryStorage()

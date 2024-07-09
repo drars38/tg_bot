@@ -48,9 +48,9 @@ async def black_list_users_button(message: Message):
 
 
 @router.message(F.text == 'Неотвеченные сообщения')
-async def list_unanswered_button(message: Message, state: FSMContext):
+async def list_unanswered_button(message: Message):
     if str(message.from_user.id) in ADMIN_USER_ID:
-        await list_unanswered(message, state)
+        await list_unanswered(message)
     else:
         await message.reply('❌❌❌У вас нет доступа к этой команде.❌❌❌')
 
