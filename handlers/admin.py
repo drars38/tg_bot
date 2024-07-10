@@ -11,7 +11,7 @@ from app.keyboards import (
     create_admin_inline_keyboard, unban_user_keyboard, user_keyboard_after_login,
     banned_user
 )
-from config import ADMIN_USER_ID, escape_markdown_v2
+from config import ADMIN_USER_ID, wrap_code_blocks
 from handlers.help import AnswerMessage
 
 router = Router()
@@ -81,10 +81,10 @@ async def list_unanswered(message: Message):
         await message.reply('Нет необработанных сообщений.')
         return
     for msg in unanswered:
-        keyboard = create_admin_inline_keyboard(msg[0])
+        keyboard = await create_admin_inline_keyboard(msg[0])
         first_name = await get_first_name(str(msg[1]))
         username = await get_username(str(msg[1]))
-        ai_respond = escape_markdown_v2(str(msg[3]))
+        ai_respond = wrap_code_blocks(str(msg[3]))
         #print(ai_respond)
         if username[0] is not None:
             await message.reply(
@@ -96,7 +96,8 @@ async def list_unanswered(message: Message):
             await message.reply(
                 f'Сообщение от пользователя <a href="tg://user?id={msg[1]}">{first_name[0]}</a>:\n"{msg[2]}"',
                 reply_markup=keyboard, parse_mode='HTML')
-            await message.answer(f'🤖: {ai_respond}', parse_mode='MarkdownV2')
+            if msg[3] is not None:
+                await message.answer(f'🤖: {ai_respond}', parse_mode='MarkdownV2')
 
 
 @router.callback_query(F.data.startswith('reply_'))

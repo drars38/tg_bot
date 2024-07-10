@@ -1,13 +1,13 @@
-from config import escape_markdown_v2
 from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from app.database import (add_user, check_user_or_registr, get_history,
-                          get_blocked_user_message, get_black_list,
-                          respond_to_message, get_chat_id, get_message, add_message, ai_respond, set_response_with_ai)
-from app.keyboards import user_keyboard_after_login, banned_user, admin_keyboard, company_info, bad_ai_response
-from config import ADMIN_USER_ID
+                          get_blocked_user_message, get_black_list, bad_ai_response,
+                          respond_to_message, get_chat_id, get_message, add_message, ai_respond, set_response_with_ai,
+                          get_msg_id, get_ai_response)
+from app.keyboards import user_keyboard_after_login, banned_user, admin_keyboard, company_info, bad_or_good_ai_response
+from config import ADMIN_USER_ID, wrap_code_blocks
 from handlers.help import HelpMessage, AnswerMessage
 from app.ai import robot_answer
 black_list = []
@@ -117,13 +117,15 @@ async def handle_message(message: Message, state: FSMContext, bot: Bot):
         if current_state == HelpMessage.message_send.state:
             user_message = message.text
             db_message_id = await add_message(user_id, user_message)
+            msg_id = await get_msg_id(user_id, user_message)
             await state.update_data(message_id=db_message_id, chat_id=message.chat.id, message_send=True)
             await message.reply(f'✅Ваше сообщение: "{user_message}" получено. Ожидайте ответа. Не стоит доверять ответу от нейросети.')
             await bot.send_chat_action(message.from_user.id, action="typing")
             robot = robot_answer(message.text)
-            robot_response = escape_markdown_v2(robot)
+            robot_response = wrap_code_blocks(robot)
             await ai_respond(str(robot), user_message)
-            kb = bad_ai_response(db_message_id)
+            print(msg_id[0])
+            kb = await bad_or_good_ai_response(str(msg_id[0]))
             await message.answer(f'🤖: {robot_response}',reply_markup=kb, parse_mode='MarkdownV2')
             await state.clear()
         else:
@@ -132,14 +134,17 @@ async def handle_message(message: Message, state: FSMContext, bot: Bot):
 
 @router.callback_query(F.data.startswith('bad_answer_'))
 async def handle_bad_callback(callback_query: CallbackQuery, state: FSMContext):
+    message_id = callback_query.data.split('_')[2]
     await callback_query.answer("Спасибо за фидбек! Сделам бота лучше вместе :)")
-    message_id = callback_query.data.split('_')[1]
-    user = await get_chat_id(message_id, 0)
+    await bad_ai_response(message_id)
+
 
 
 @router.callback_query(F.data.startswith('good_answer_'))
-async def handle_good_callback(callback_query: CallbackQuery, bot: Bot):
-    message_id = callback_query.data.split('_')[1]
-    user = await get_chat_id(message_id, 0)
+async def handle_good_callback(callback_query: CallbackQuery):
+    message_id = callback_query.data.split('_')[2]
+
     await set_response_with_ai(message_id, 0)
+    print(message_id +'\n')
     await callback_query.answer(f'Спасибо за фидбек, сделаем бота лучше вместе!!')
+

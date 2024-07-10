@@ -75,6 +75,16 @@ async def add_message(user_id, message):
     conn.close()
 
 
+async def get_msg_id(user_id, message):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('SELECT message_id FROM messages WHERE user_id = ? AND message = ?',
+                   (user_id, message))
+    result = cursor.fetchall()
+    conn.close()
+    return result[0] if result else None
+
+
 async def get_unanswered_messages():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -95,7 +105,8 @@ async def respond_to_message(message_id, response):
     conn.commit()
     conn.close()
 
-async def ai_respond(ai_response ,message):
+
+async def ai_respond(ai_response, message):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.execute('''
@@ -103,6 +114,27 @@ async def ai_respond(ai_response ,message):
     ''', (ai_response, message))
     conn.commit()
     conn.close()
+
+
+async def bad_ai_response(message_id):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE messages SET ai_response = NULL WHERE message_id = ?
+    ''', (message_id,))
+    conn.commit()
+    conn.close()
+
+
+async def get_ai_response(message_id):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('SELECT ai_response FROM messages WHERE message_id = ?',
+                   (message_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
 
 async def set_response_with_ai(message_id, answered):
     conn = sqlite3.connect(DATABASE)
@@ -112,7 +144,6 @@ async def set_response_with_ai(message_id, answered):
     ''', (message_id, answered))
     conn.commit()
     conn.close()
-
 
 
 async def get_respond(message_id):
