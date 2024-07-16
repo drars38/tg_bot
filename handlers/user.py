@@ -6,14 +6,15 @@ from app.database import (add_user, check_user_or_registr, get_history,
                           get_blocked_user_message, get_black_list, bad_ai_response,
                           respond_to_message, get_chat_id, get_message, add_message, ai_respond, set_response_with_ai,
                           get_msg_id, get_ai_response)
-from app.keyboards import user_keyboard_after_login, banned_user, admin_keyboard, company_info, bad_or_good_ai_response
+from app.keyboards import (user_keyboard_after_login, banned_user, admin_keyboard,
+                           company_info, bad_or_good_ai_response, create_news_kb)
+from app.parser import pars
 from config import ADMIN_USER_ID, wrap_code_blocks
 from handlers.help import HelpMessage, AnswerMessage
 from app.ai import robot_answer
+news_cache = []
 black_list = []
 router = Router()
-
-
 
 
 @router.message(F.contact)
@@ -57,7 +58,6 @@ async def help_command(message: Message, state: FSMContext):
     await message.reply('Задайте ваш вопрос, поддержка скоро свяжется с вами. 🛠')
 
 
-
 @router.message(F.text == 'Помощь')
 async def help_button(message: Message, state: FSMContext):
     user_id = message.from_user.id
@@ -74,8 +74,39 @@ async def info(message: Message):
 
 
 @router.message(F.text == 'Новости "Транснефти"')
-async def investors(message: Message):
-    await message.reply('Новости')
+async def news(message: Message):
+    global news_cache
+    if not news_cache:
+        news_cache = await pars()
+    if news_cache:
+        news_list = list(news_cache.items())
+        await send_news_item(message, news_list, 0)
+    else:
+        await message.answer("Не удалось получить данные с сайта.")
+
+
+async def send_news_item(message, news_list, news_index, is_edit=False):
+    txt, link = news_list[news_index]
+    kb = create_news_kb(news_index, len(news_list), link)
+    if is_edit:
+        await message.edit_text(text=str(txt), reply_markup=kb)
+    else:
+        await message.answer(text=str(txt), reply_markup=kb)
+
+
+@router.callback_query(F.data.startswith('prev_'))
+async def process_prev(callback_query: CallbackQuery):
+    news_index = int(callback_query.data.split('_')[1])
+    news_list = list(news_cache.items())
+    await send_news_item(callback_query.message, news_list, news_index, is_edit=True)
+    await callback_query.answer()
+
+@router.callback_query(F.data.startswith('next_'))
+async def process_prev(callback_query: CallbackQuery):
+    news_index = int(callback_query.data.split('_')[1])
+    news_list = list(news_cache.items())
+    await send_news_item(callback_query.message, news_list, news_index, is_edit=True)
+    await callback_query.answer()
 
 
 @router.message(F.text == 'Клиентам')
@@ -119,14 +150,16 @@ async def handle_message(message: Message, state: FSMContext, bot: Bot):
             db_message_id = await add_message(user_id, user_message)
             msg_id = await get_msg_id(user_id, user_message)
             await state.update_data(message_id=db_message_id, chat_id=message.chat.id, message_send=True)
-            await message.reply(f'✅Ваше сообщение: "{user_message}" получено. Ожидайте ответа. Не стоит доверять ответу от нейросети.')
+            await message.reply(
+                f'✅Ваше сообщение: "{user_message}" получено. Ожидайте ответа. Не стоит доверять ответу от нейросети.')
             await bot.send_chat_action(message.from_user.id, action="typing")
             robot = robot_answer(message.text)
             robot_response = wrap_code_blocks(robot)
+            await bot.send_chat_action(message.from_user.id, action="typing")
             await ai_respond(str(robot), user_message)
             print(msg_id[0])
             kb = await bad_or_good_ai_response(str(msg_id[0]))
-            await message.answer(f'🤖: {robot_response}',reply_markup=kb, parse_mode='MarkdownV2')
+            await message.answer(f'🤖: {robot_response}', reply_markup=kb, parse_mode='MarkdownV2')
             await state.clear()
         else:
             await message.answer('Сначала нажмите кнопку Помощь❗️❗️❗️')
@@ -139,12 +172,10 @@ async def handle_bad_callback(callback_query: CallbackQuery, state: FSMContext):
     await bad_ai_response(message_id)
 
 
-
 @router.callback_query(F.data.startswith('good_answer_'))
 async def handle_good_callback(callback_query: CallbackQuery):
     message_id = callback_query.data.split('_')[2]
 
     await set_response_with_ai(message_id, 0)
-    print(message_id +'\n')
+    print(message_id + '\n')
     await callback_query.answer(f'Спасибо за фидбек, сделаем бота лучше вместе!!')
-

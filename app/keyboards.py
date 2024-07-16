@@ -1,4 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
 from app.database import get_ai_response
 
 # Inline клавиатура для настроек
@@ -13,22 +15,11 @@ login_keyboard = ReplyKeyboardMarkup(
 )
 
 # Основная клавиатура для обычных пользователей
-user_keyboard = ReplyKeyboardMarkup(
-    keyboard=[
-
-        [KeyboardButton(text='Зарегистрироваться', request_contact=True)],
-        [KeyboardButton(text='Помощь')],
-        [KeyboardButton(text='О компании')],
-        [KeyboardButton(text='Новости сообщества'), KeyboardButton(text='Клиентам')],
-        [KeyboardButton(text='Войти в аккаунт', request_contact=True)]
-    ],
-    resize_keyboard=True, input_field_placeholder='Выберите пункт меню.'
-)
-
 user_keyboard_after_login = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text='Помощь')], [KeyboardButton(text='История запросов')],
-        [KeyboardButton(text='О компании')],
+        [KeyboardButton(text='Помощь')],
+        [KeyboardButton(text='История запросов')],
+        [KeyboardButton(text='О компании'), KeyboardButton(text='Новости "Транснефти"')],
         [KeyboardButton(text='Клиентам')]
     ],
     resize_keyboard=True, input_field_placeholder='Выберите пункт меню.'
@@ -43,6 +34,14 @@ admin_keyboard = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
+def create_news_kb(news_index, news_length, news_posts_link):
+    builder = InlineKeyboardBuilder()
+    if news_index > 0:
+        builder.row(InlineKeyboardButton(text='⬅️', callback_data=f'prev_{news_index-1}'))
+    builder.add(InlineKeyboardButton(text='Ознакомиться', url=news_posts_link))
+    if news_index < news_length - 1:
+        builder.add(InlineKeyboardButton(text='➡️', callback_data=f'next_{news_index+1}'))
+    return builder.as_markup()
 
 # Inline-клавиатура для админов
 async def create_admin_inline_keyboard(message_id):

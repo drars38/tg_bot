@@ -4,9 +4,10 @@ from aiogram.types import Message
 from app.keyboards import login_keyboard
 
 router = Router()
-
+news_dict = {}
 
 @router.message(Command("start"))
 async def start(message: Message):
     await message.reply('👋Вас приветствует служба поддержки Транснефть. Пройдите регистрацию',
                         reply_markup=login_keyboard)
+
